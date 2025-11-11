@@ -1,0 +1,37 @@
+{
+  "name": "xulerialcorte",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "check:env": "node scripts/check-env.js",
+    "test:supabase": "node scripts/test-supabase-connection.js",
+    "test:cloudinary": "node scripts/test-cloudinary.js",
+    "update:categories": "node scripts/update-supabase-categories.js",
+    "add:products": "node scripts/add-products.js"
+  },
+  "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.8.7",
+    "@supabase/supabase-js": "^2.81.1",
+    "@tensorflow/tfjs": "^4.15.0",
+    "cloudinary": "^1.41.0",
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.16",
+    "dotenv": "^16.6.1",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3"
+  }
+}
