@@ -13,6 +13,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // CRÍTICO: Flow requiere respuesta HTTP 200 en menos de 15 segundos
+  // Respondemos inmediatamente y procesamos de forma asíncrona
+  
+  // Log para debugging
+  console.log('Flow confirm recibido:', {
+    method: req.method,
+    query: req.query,
+    body: req.body,
+    timestamp: new Date().toISOString(),
+  })
+  
   // Flow puede enviar datos por GET o POST
   const rawData = req.method === 'GET' ? req.query : req.body
   const flowData: FlowConfirmRequest = {
@@ -22,25 +33,59 @@ export default async function handler(
     s: typeof rawData.s === 'string' ? rawData.s : undefined,
   }
 
+  const { token, commerceOrder, status, s } = flowData
+
+  // Validación básica - pero siempre respondemos 200 a Flow
+  if (!token || !commerceOrder) {
+    console.error('Flow confirm: Token o commerceOrder faltantes', { token, commerceOrder })
+    // IMPORTANTE: Flow espera HTTP 200 siempre, incluso con errores
+    return res.status(200).json({ 
+      success: false, 
+      message: 'Token and commerceOrder are required' 
+    })
+  }
+
+  // Si Flow no está configurado, responder inmediatamente
+  if (!process.env.NEXT_PUBLIC_FLOW_API_KEY || !process.env.FLOW_SECRET_KEY) {
+    console.warn('Flow no configurado, confirmación simulada')
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Confirmación simulada' 
+    })
+  }
+
+  // Responder inmediatamente a Flow con HTTP 200
+  // Esto es crítico para evitar el timeout de 15 segundos
+  res.status(200).json({
+    success: true,
+    message: 'Confirmación recibida',
+    commerceOrder: commerceOrder,
+  })
+
+  // Procesar confirmación de forma asíncrona (después de responder)
+  // Esto evita que Flow espere y cause timeout
+  processConfirmationAsync(token, commerceOrder, status, s).catch(error => {
+    console.error('Error en procesamiento asíncrono de confirmación:', error)
+  })
+}
+
+// Función asíncrona para procesar la confirmación sin bloquear la respuesta
+async function processConfirmationAsync(
+  token: string,
+  commerceOrder: string,
+  status: string | undefined,
+  s: string | undefined
+) {
   try {
-    const { token, commerceOrder, status, s } = flowData
-
-    if (!token || !commerceOrder) {
-      return res.status(400).json({ error: 'Token and commerceOrder are required' })
-    }
-
-    // Si Flow no está configurado, simular confirmación
-    if (!process.env.NEXT_PUBLIC_FLOW_API_KEY || !process.env.FLOW_SECRET_KEY) {
-      console.warn('Flow no configurado, confirmación simulada')
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Confirmación simulada' 
-      })
-    }
 
     // Verificar firma de seguridad (si Flow la envía)
     if (s) {
       const flowSecretKey = process.env.FLOW_SECRET_KEY
+      if (!flowSecretKey) {
+        console.error('FLOW_SECRET_KEY no configurada')
+        return
+      }
+
       const paramsToVerify: Record<string, string> = {
         token,
         commerceOrder,
@@ -62,8 +107,11 @@ export default async function handler(
         .digest('hex')
 
       if (calculatedSignature !== s) {
-        console.error('Firma de seguridad inválida')
-        return res.status(400).json({ error: 'Invalid signature' })
+        console.error('Firma de seguridad inválida', {
+          received: s,
+          calculated: calculatedSignature,
+        })
+        return // No fallar, solo loguear
       }
     }
 
@@ -71,6 +119,11 @@ export default async function handler(
     const flowApiKey = process.env.NEXT_PUBLIC_FLOW_API_KEY
     const flowSecretKey = process.env.FLOW_SECRET_KEY
     
+    if (!flowApiKey || !flowSecretKey) {
+      console.error('Credenciales de Flow no configuradas')
+      return
+    }
+
     const statusParams: Record<string, string> = {
       apiKey: flowApiKey,
       token: token,
@@ -90,7 +143,7 @@ export default async function handler(
 
     statusParams.s = statusSignature
 
-    // Consultar estado del pago
+    // Consultar estado del pago con timeout
     // Según el manual, payment/getStatus es un endpoint GET
     const flowStatusUrl = 'https://www.flow.cl/api/payment/getStatus'
     
@@ -98,93 +151,97 @@ export default async function handler(
     const queryParams = new URLSearchParams(statusParams).toString()
     const fullUrl = `${flowStatusUrl}?${queryParams}`
     
-    const statusResponse = await fetch(fullUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    // Usar timeout para evitar que se cuelgue
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos timeout
 
-    if (!statusResponse.ok) {
-      throw new Error('Error al consultar estado del pago')
-    }
+    try {
+      const statusResponse = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      })
 
-    const statusData = await statusResponse.json()
+      clearTimeout(timeoutId)
 
-    // Verificar que el pago fue exitoso
-    if (statusData.status === 2) { // 2 = Pagado en Flow
-      // Extraer información de la orden desde el commerceOrder
-      // El formato es: XAC_timestamp_random
-      const orderMatch = commerceOrder.match(/^XAC_(\d+)_/)
-      
-      // Intentar obtener datos adicionales del optional si están disponibles
-      let orderItems: any[] = []
-      let userId: string | null = null
-      
-      if (statusData.optional) {
-        try {
-          const optionalData = JSON.parse(statusData.optional)
-          orderItems = optionalData.items || []
-          userId = optionalData.user_id || null
-        } catch (e) {
-          console.warn('No se pudieron parsear datos opcionales')
-        }
+      if (!statusResponse.ok) {
+        const errorText = await statusResponse.text()
+        console.error('Error al consultar estado del pago en Flow:', {
+          status: statusResponse.status,
+          error: errorText,
+        })
+        return
       }
 
-      // Si tenemos items, crear/actualizar la orden en Supabase
-      if (orderItems.length > 0 && process.env.NEXT_PUBLIC_SUPABASE_URL) {
-        try {
-          const total = orderItems.reduce(
-            (sum: number, item: any) => sum + (item.price * item.quantity),
-            0
-          )
+      const statusData = await statusResponse.json()
 
-          const { data: orderData, error: orderError } = await supabase
-            .from('orders')
-            .insert({
-              user_id: userId,
-              total: total,
-              status: 'paid',
-              items: orderItems,
-              flow_token: token,
-              flow_commerce_order: commerceOrder,
-              payment_method: 'flow',
-            })
-            .select()
-            .single()
-
-          if (orderError) {
-            console.error('Error al crear orden en Supabase:', orderError)
-            // No fallar si hay error en Supabase, el pago ya fue procesado
-          } else {
-            console.log('Orden creada exitosamente:', orderData.id)
+      // Verificar que el pago fue exitoso
+      if (statusData.status === 2) { // 2 = Pagado en Flow
+        console.log('Pago confirmado exitosamente:', { token, commerceOrder })
+        
+        // Intentar obtener datos adicionales del optional si están disponibles
+        let orderItems: any[] = []
+        let userId: string | null = null
+        
+        if (statusData.optional) {
+          try {
+            const optionalData = JSON.parse(statusData.optional)
+            orderItems = optionalData.items || []
+            userId = optionalData.user_id || null
+          } catch (e) {
+            console.warn('No se pudieron parsear datos opcionales:', e)
           }
-        } catch (supabaseError) {
-          console.error('Error al guardar orden:', supabaseError)
         }
-      }
 
-      // Retornar confirmación exitosa
-      return res.status(200).json({
-        success: true,
-        message: 'Pago confirmado exitosamente',
-        commerceOrder: commerceOrder,
-        status: 'paid',
-      })
-    } else {
-      // Pago no completado
-      return res.status(200).json({
-        success: false,
-        message: 'Pago no completado',
-        status: statusData.status,
-      })
+        // Si tenemos items, crear/actualizar la orden en Supabase
+        if (orderItems.length > 0 && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          try {
+            const total = orderItems.reduce(
+              (sum: number, item: any) => sum + (item.price * item.quantity),
+              0
+            )
+
+            const { data: orderData, error: orderError } = await supabase
+              .from('orders')
+              .insert({
+                user_id: userId,
+                total: total,
+                status: 'paid',
+                items: orderItems,
+                flow_token: token,
+                flow_commerce_order: commerceOrder,
+                payment_method: 'flow',
+              })
+              .select()
+              .single()
+
+            if (orderError) {
+              console.error('Error al crear orden en Supabase:', orderError)
+              // No fallar si hay error en Supabase, el pago ya fue procesado
+            } else {
+              console.log('Orden creada exitosamente en Supabase:', orderData.id)
+            }
+          } catch (supabaseError) {
+            console.error('Error al guardar orden en Supabase:', supabaseError)
+          }
+        } else {
+          console.warn('No se pudo crear orden: items vacíos o Supabase no configurado')
+        }
+      } else {
+        console.log('Pago no completado, status:', statusData.status)
+      }
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId)
+      if (fetchError.name === 'AbortError') {
+        console.error('Timeout al consultar estado del pago en Flow')
+      } else {
+        console.error('Error al consultar estado del pago:', fetchError)
+      }
     }
   } catch (error: any) {
-    console.error('Flow confirmation error:', error)
-    return res.status(500).json({ 
-      error: 'Error processing confirmation',
-      message: error.message || 'Error desconocido'
-    })
+    console.error('Error en processConfirmationAsync:', error)
   }
 }
 

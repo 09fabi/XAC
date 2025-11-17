@@ -16,14 +16,17 @@ export default function Cart() {
 
   // Manejar retorno de Flow
   useEffect(() => {
+    // Solo ejecutar en el cliente
+    if (typeof window === 'undefined') return
+    
     const { payment, order } = router.query
     
-    if (payment === 'success' && order) {
+    if (payment === 'success') {
       setPaymentStatus('success')
       // Limpiar el carrito después de un pago exitoso
       setTimeout(() => {
         clearCart()
-        router.replace('/cart') // Limpiar query params
+        router.replace('/cart', undefined, { shallow: true }) // Limpiar query params
         setTimeout(() => {
           router.push('/profile')
         }, 2000)
@@ -31,7 +34,7 @@ export default function Cart() {
     } else if (payment === 'error') {
       setPaymentStatus('error')
       setTimeout(() => {
-        router.replace('/cart')
+        router.replace('/cart', undefined, { shallow: true })
       }, 3000)
     }
   }, [router.query, clearCart, router])
