@@ -28,6 +28,23 @@ export default async function handler(
       return res.status(400).json({ error: 'Amount and items are required' })
     }
 
+    // Validar email
+    if (!email || !email.trim()) {
+      return res.status(400).json({ 
+        error: 'Email is required',
+        message: 'El email es requerido para procesar el pago'
+      })
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        error: 'Invalid email format',
+        message: `The userEmail: ${email} is not valid. Por favor, intenta nuevamente.`
+      })
+    }
+
     // Si Flow no está configurado, simular el pago
     if (!process.env.NEXT_PUBLIC_FLOW_API_KEY || !process.env.FLOW_SECRET_KEY) {
       console.warn('Flow no configurado, usando modo simulación')
@@ -74,7 +91,7 @@ export default async function handler(
       subject: subject,
       amount: amountInt.toString(), // Entero sin decimales
       currency: 'CLP', // Moneda: CLP para Chile
-      email: email || 'cliente@example.com',
+      email: email.trim(), // Email validado
       urlConfirmation: `${baseUrl}/api/flow/confirm`,
       urlReturn: `${baseUrl}/cart?payment=success&order=${commerceOrder}`,
       optional: JSON.stringify({

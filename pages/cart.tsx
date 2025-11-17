@@ -11,6 +11,8 @@ export default function Cart() {
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<'success' | 'error' | null>(null)
+  const [userEmail, setUserEmail] = useState('')
+  const [emailError, setEmailError] = useState('')
 
   // Manejar retorno de Flow
   useEffect(() => {
@@ -41,19 +43,33 @@ export default function Cart() {
     }).format(price)
   }
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
   const handleCheckout = async () => {
     if (cart.length === 0) {
       alert('Tu carrito está vacío')
       return
     }
 
+    // Validar email
+    if (!userEmail || !userEmail.trim()) {
+      setEmailError('Por favor, ingresa tu email')
+      return
+    }
+
+    if (!validateEmail(userEmail)) {
+      setEmailError('Por favor, ingresa un email válido')
+      return
+    }
+
+    setEmailError('')
     setIsProcessing(true)
     setPaymentStatus(null)
 
     try {
-      // Obtener email del usuario si está disponible (puedes integrar con Supabase Auth)
-      // Por ahora usamos un valor por defecto
-      const userEmail = 'cliente@example.com' // TODO: Obtener del usuario autenticado
       const userId = null // TODO: Obtener del usuario autenticado
 
       // Crear pago en Flow
@@ -227,6 +243,29 @@ export default function Cart() {
                           <span className="text-black">{formatPrice(getTotalPrice())}</span>
                         </div>
                       </div>
+                    </div>
+                    {/* Campo de email */}
+                    <div className="mb-4">
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2 uppercase tracking-wide">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        value={userEmail}
+                        onChange={(e) => {
+                          setUserEmail(e.target.value)
+                          setEmailError('')
+                        }}
+                        placeholder="tu@email.com"
+                        className={`w-full px-4 py-3 border-2 ${
+                          emailError ? 'border-red-500' : 'border-black'
+                        } focus:outline-none focus:ring-2 focus:ring-black transition-all`}
+                        disabled={isProcessing}
+                      />
+                      {emailError && (
+                        <p className="mt-1 text-sm text-red-600">{emailError}</p>
+                      )}
                     </div>
                     <button
                       onClick={handleCheckout}
