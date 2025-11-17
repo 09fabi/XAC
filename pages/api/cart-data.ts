@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 // Esta API route puede usarse para guardar el carrito en el servidor
 // Por ahora, el carrito se maneja en el cliente con localStorage
 // pero esta ruta está preparada para futuras implementaciones
+// NOTA: Renombrado de cart.ts a cart-data.ts para evitar conflicto con la página /cart
 
 export default async function handler(
   req: NextApiRequest,

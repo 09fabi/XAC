@@ -59,12 +59,34 @@ export default async function handler(
     // Configuración de Flow
     const flowApiKey = process.env.NEXT_PUBLIC_FLOW_API_KEY
     const flowSecretKey = process.env.FLOW_SECRET_KEY
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    
+    // Detectar URL base automáticamente
+    // Prioridad: 1. Variable de entorno, 2. URL del request (producción), 3. localhost (desarrollo)
+    let baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+    
+    if (!baseUrl || baseUrl.includes('localhost')) {
+      // Si no hay URL configurada o es localhost, intentar detectar desde el request
+      const host = req.headers.host
+      const protocol = req.headers['x-forwarded-proto'] || (host?.includes('localhost') ? 'http' : 'https')
+      
+      if (host && !host.includes('localhost')) {
+        // Estamos en producción, usar la URL del request
+        baseUrl = `${protocol}://${host}`
+      } else {
+        // Desarrollo local
+        baseUrl = 'http://localhost:3000'
+      }
+    }
+    
+    // Asegurar que la URL no termine con /
+    baseUrl = baseUrl.replace(/\/$/, '')
     
     // Validar que las URLs sean HTTPS en producción
     if (baseUrl.includes('vercel.app') && !baseUrl.startsWith('https://')) {
       console.warn('NEXT_PUBLIC_BASE_URL debería usar HTTPS en producción')
     }
+    
+    console.log('Flow create-payment - Base URL detectada:', baseUrl)
     
     // Generar número de orden único
     const commerceOrder = `XAC_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
@@ -93,7 +115,7 @@ export default async function handler(
       currency: 'CLP', // Moneda: CLP para Chile
       email: email.trim(), // Email validado
       urlConfirmation: `${baseUrl}/api/flow/confirm`,
-      urlReturn: `${baseUrl}/cart?payment=success&order=${commerceOrder}`,
+      urlReturn: `${baseUrl}/api/flow/return?commerceOrder=${commerceOrder}`,
       optional: JSON.stringify({
         user_id: user_id || null,
         items: items,

@@ -16,16 +16,46 @@ export default async function handler(
   // CRÍTICO: Flow requiere respuesta HTTP 200 en menos de 15 segundos
   // Respondemos inmediatamente y procesamos de forma asíncrona
   
+  // Aceptar todos los métodos HTTP (Flow puede usar GET o POST)
+  // Esto es importante para evitar errores 405
+  
   // Log para debugging
   console.log('Flow confirm recibido:', {
     method: req.method,
     query: req.query,
     body: req.body,
+    headers: {
+      'user-agent': req.headers['user-agent'],
+      'content-type': req.headers['content-type'],
+    },
     timestamp: new Date().toISOString(),
   })
   
   // Flow puede enviar datos por GET o POST
-  const rawData = req.method === 'GET' ? req.query : req.body
+  // También puede enviar datos en el body como form-data o JSON
+  let rawData: any = {}
+  
+  if (req.method === 'GET') {
+    rawData = req.query
+  } else if (req.method === 'POST') {
+    // Intentar parsear como JSON primero
+    if (typeof req.body === 'object' && req.body !== null) {
+      rawData = req.body
+    } else if (typeof req.body === 'string') {
+      try {
+        rawData = JSON.parse(req.body)
+      } catch (e) {
+        // Si no es JSON, podría ser form-data
+        rawData = req.body
+      }
+    } else {
+      rawData = req.query
+    }
+  } else {
+    // Para cualquier otro método, usar query
+    rawData = req.query
+  }
+  
   const flowData: FlowConfirmRequest = {
     token: typeof rawData.token === 'string' ? rawData.token : '',
     commerceOrder: typeof rawData.commerceOrder === 'string' ? rawData.commerceOrder : '',
@@ -35,32 +65,32 @@ export default async function handler(
 
   const { token, commerceOrder, status, s } = flowData
 
-  // Validación básica - pero siempre respondemos 200 a Flow
-  if (!token || !commerceOrder) {
-    console.error('Flow confirm: Token o commerceOrder faltantes', { token, commerceOrder })
-    // IMPORTANTE: Flow espera HTTP 200 siempre, incluso con errores
-    return res.status(200).json({ 
-      success: false, 
-      message: 'Token and commerceOrder are required' 
-    })
-  }
-
   // Si Flow no está configurado, responder inmediatamente
   if (!process.env.NEXT_PUBLIC_FLOW_API_KEY || !process.env.FLOW_SECRET_KEY) {
     console.warn('Flow no configurado, confirmación simulada')
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Confirmación simulada' 
-    })
+    // Responder con texto plano simple para máxima compatibilidad
+    res.status(200).setHeader('Content-Type', 'text/plain')
+    return res.send('OK')
   }
 
-  // Responder inmediatamente a Flow con HTTP 200
+  // Validación básica - pero siempre respondemos 200 a Flow
+  if (!token || !commerceOrder) {
+    console.error('Flow confirm: Token o commerceOrder faltantes', { 
+      token: token || 'missing', 
+      commerceOrder: commerceOrder || 'missing',
+      rawData: Object.keys(rawData),
+    })
+    // IMPORTANTE: Flow espera HTTP 200 siempre, incluso con errores
+    // Responder con texto plano simple
+    res.status(200).setHeader('Content-Type', 'text/plain')
+    return res.send('OK')
+  }
+
+  // Responder INMEDIATAMENTE a Flow con HTTP 200
   // Esto es crítico para evitar el timeout de 15 segundos
-  res.status(200).json({
-    success: true,
-    message: 'Confirmación recibida',
-    commerceOrder: commerceOrder,
-  })
+  // Usar texto plano "OK" que es lo que Flow espera según su documentación
+  res.status(200).setHeader('Content-Type', 'text/plain')
+  res.send('OK')
 
   // Procesar confirmación de forma asíncrona (después de responder)
   // Esto evita que Flow espere y cause timeout
