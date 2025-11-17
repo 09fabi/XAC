@@ -69,8 +69,9 @@ export default async function handler(
   if (!process.env.NEXT_PUBLIC_FLOW_API_KEY || !process.env.FLOW_SECRET_KEY) {
     console.warn('Flow no configurado, confirmación simulada')
     // Responder con texto plano simple para máxima compatibilidad
-    res.status(200).setHeader('Content-Type', 'text/plain')
-    return res.send('OK')
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    res.status(200).end('OK')
+    return
   }
 
   // Validación básica - pero siempre respondemos 200 a Flow
@@ -81,16 +82,18 @@ export default async function handler(
       rawData: Object.keys(rawData),
     })
     // IMPORTANTE: Flow espera HTTP 200 siempre, incluso con errores
-    // Responder con texto plano simple
-    res.status(200).setHeader('Content-Type', 'text/plain')
-    return res.send('OK')
+    // Responder con texto plano simple - usar end() para evitar que Next.js agregue JSON
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    res.status(200).end('OK')
+    return
   }
 
   // Responder INMEDIATAMENTE a Flow con HTTP 200
   // Esto es crítico para evitar el timeout de 15 segundos
   // Usar texto plano "OK" que es lo que Flow espera según su documentación
-  res.status(200).setHeader('Content-Type', 'text/plain')
-  res.send('OK')
+  // Usar end() en lugar de send() para asegurar que no se agregue JSON
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  res.status(200).end('OK')
 
   // Procesar confirmación de forma asíncrona (después de responder)
   // Esto evita que Flow espere y cause timeout
