@@ -90,7 +90,8 @@ CLOUDINARY_API_KEY=tu_api_key
 CLOUDINARY_API_SECRET=tu_api_secret
 
 # Flow Payment (opcional)
-NEXT_PUBLIC_FLOW_API_KEY=tu_flow_key
+NEXT_PUBLIC_FLOW_API_KEY=tu_flow_api_key
+FLOW_SECRET_KEY=tu_flow_secret_key
 
 # Base URL (opcional)
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
@@ -118,6 +119,7 @@ npm run test:supabase
 # Probar Cloudinary
 npm run test:cloudinary
 ```
+
 
 
 

@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import CartItem from '@/components/CartItem'
@@ -8,6 +9,30 @@ import { useCart } from '@/context/CartContext'
 export default function Cart() {
   const router = useRouter()
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart()
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState<'success' | 'error' | null>(null)
+
+  // Manejar retorno de Flow
+  useEffect(() => {
+    const { payment, order } = router.query
+    
+    if (payment === 'success' && order) {
+      setPaymentStatus('success')
+      // Limpiar el carrito después de un pago exitoso
+      setTimeout(() => {
+        clearCart()
+        router.replace('/cart') // Limpiar query params
+        setTimeout(() => {
+          router.push('/profile')
+        }, 2000)
+      }, 2000)
+    } else if (payment === 'error') {
+      setPaymentStatus('error')
+      setTimeout(() => {
+        router.replace('/cart')
+      }, 3000)
+    }
+  }, [router.query, clearCart, router])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', {
@@ -22,8 +47,16 @@ export default function Cart() {
       return
     }
 
+    setIsProcessing(true)
+    setPaymentStatus(null)
+
     try {
-      // Redirigir a la API de Flow para procesar el pago
+      // Obtener email del usuario si está disponible (puedes integrar con Supabase Auth)
+      // Por ahora usamos un valor por defecto
+      const userEmail = 'cliente@example.com' // TODO: Obtener del usuario autenticado
+      const userId = null // TODO: Obtener del usuario autenticado
+
+      // Crear pago en Flow
       const response = await fetch('/api/flow/create-payment', {
         method: 'POST',
         headers: {
@@ -31,17 +64,27 @@ export default function Cart() {
         },
         body: JSON.stringify({
           amount: getTotalPrice(),
-          items: cart,
+          items: cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          email: userEmail,
+          user_id: userId,
         }),
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        // En producción, redirigir a la URL de Flow
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Si Flow está configurado y retorna una URL, redirigir
         if (data.url) {
+          // Redirigir a Flow para completar el pago
           window.location.href = data.url
+          return
         } else {
-          // Guardar orden en Supabase antes de limpiar el carrito
+          // Modo simulación - crear orden directamente
           try {
             const orderResponse = await fetch('/api/orders/create', {
               method: 'POST',
@@ -50,12 +93,19 @@ export default function Cart() {
               },
               body: JSON.stringify({
                 total: getTotalPrice(),
-                items: cart,
+                items: cart.map(item => ({
+                  id: item.id,
+                  name: item.name,
+                  price: item.price,
+                  quantity: item.quantity,
+                  selectedSize: item.selectedSize,
+                })),
+                user_id: userId,
               }),
             })
             
             if (orderResponse.ok) {
-              console.log('Orden guardada exitosamente en Supabase')
+              console.log('Orden guardada exitosamente')
             }
           } catch (error) {
             console.error('Error al guardar orden:', error)
@@ -66,11 +116,16 @@ export default function Cart() {
           router.push('/profile')
         }
       } else {
-        alert('Error al procesar el pago. Por favor, intenta nuevamente.')
+        const errorMessage = data.message || data.error || 'Error al procesar el pago'
+        alert(`Error: ${errorMessage}. Por favor, intenta nuevamente.`)
+        setPaymentStatus('error')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during checkout:', error)
       alert('Error al procesar el pago. Por favor, intenta nuevamente.')
+      setPaymentStatus('error')
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -87,6 +142,23 @@ export default function Cart() {
         <main className="flex-grow py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl md:text-5xl font-black mb-12 uppercase tracking-tight">Carrito</h1>
+
+            {/* Mensajes de estado de pago */}
+            {paymentStatus === 'success' && (
+              <div className="mb-6 p-4 bg-green-100 border-2 border-green-500 rounded-lg">
+                <p className="text-green-800 font-medium">
+                  ✓ Pago procesado exitosamente. Redirigiendo a tu perfil...
+                </p>
+              </div>
+            )}
+            
+            {paymentStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-100 border-2 border-red-500 rounded-lg">
+                <p className="text-red-800 font-medium">
+                  ✗ Hubo un error al procesar el pago. Por favor, intenta nuevamente.
+                </p>
+              </div>
+            )}
 
             {cart.length === 0 ? (
               <div className="text-center py-24">
@@ -158,9 +230,12 @@ export default function Cart() {
                     </div>
                     <button
                       onClick={handleCheckout}
-                      className="w-full btn-primary py-4 text-sm mb-3"
+                      disabled={isProcessing}
+                      className={`w-full btn-primary py-4 text-sm mb-3 ${
+                        isProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
-                      Proceder al Pago
+                      {isProcessing ? 'Procesando...' : 'Proceder al Pago'}
                     </button>
                     <button
                       onClick={() => router.push('/store')}

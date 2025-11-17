@@ -49,7 +49,11 @@ const cloudinaryOk =
   checkVar('CLOUDINARY_API_SECRET', process.env.CLOUDINARY_API_SECRET)
 
 console.log('\n💳 FLOW (opcional):')
-checkVar('NEXT_PUBLIC_FLOW_API_KEY', process.env.NEXT_PUBLIC_FLOW_API_KEY, false)
+const flowApiKey = checkVar('NEXT_PUBLIC_FLOW_API_KEY', process.env.NEXT_PUBLIC_FLOW_API_KEY, false)
+const flowSecretKey = checkVar('FLOW_SECRET_KEY', process.env.FLOW_SECRET_KEY, false)
+if (flowApiKey && !flowSecretKey) {
+  console.log('   ⚠️  FLOW_SECRET_KEY recomendada si NEXT_PUBLIC_FLOW_API_KEY está configurada')
+}
 
 console.log('\n' + '='.repeat(50))
 
@@ -67,6 +71,7 @@ if (supabaseOk && cloudinaryOk) {
   console.log('   (sin comillas alrededor de los valores)')
   process.exit(1)
 }
+
 
 
 

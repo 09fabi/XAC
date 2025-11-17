@@ -68,7 +68,13 @@ Estas solo están disponibles en el servidor (API routes):
 CLOUDINARY_CLOUD_NAME=tu_cloud_name_de_cloudinary
 CLOUDINARY_API_KEY=tu_api_key_de_cloudinary
 CLOUDINARY_API_SECRET=tu_api_secret_de_cloudinary
+FLOW_SECRET_KEY=tu_secret_key_de_flow
 ```
+
+**⚠️ IMPORTANTE para Flow:**
+- `NEXT_PUBLIC_FLOW_API_KEY`: Tu API Key de Flow (pública)
+- `FLOW_SECRET_KEY`: Tu Secret Key de Flow (privada, solo servidor)
+- `NEXT_PUBLIC_BASE_URL`: Debe ser la URL de tu proyecto en Vercel (ej: `https://xulerialcorte.vercel.app`)
 
 **Nota**: 
 - `NEXT_PUBLIC_BASE_URL` debe ser la URL de tu proyecto en Vercel (ej: `https://xulerialcorte.vercel.app`)
