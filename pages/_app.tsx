@@ -1,13 +1,13 @@
 import type { AppProps } from 'next/app'
+import { ClerkProvider } from '@clerk/nextjs'
 import { CartProvider } from '@/context/CartContext'
 import { AlertProvider } from '@/context/AlertContext'
-import { AuthProvider } from '@/context/AuthContext'
 import PageTransition from '@/components/PageTransition'
 import '@/styles/globals.css'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <AuthProvider>
+    <ClerkProvider>
       <CartProvider>
         <AlertProvider>
           <PageTransition>
@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
           </PageTransition>
         </AlertProvider>
       </CartProvider>
-    </AuthProvider>
+    </ClerkProvider>
   )
 }
 

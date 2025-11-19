@@ -14,6 +14,7 @@
     "add:products": "node scripts/add-products.js"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.35.2",
     "@supabase/auth-helpers-nextjs": "^0.8.7",
     "@supabase/supabase-js": "^2.81.1",
     "@tensorflow/tfjs": "^4.15.0",

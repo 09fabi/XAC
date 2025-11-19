@@ -57,6 +57,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_de_supabase
 #### Variables Públicas Adicionales (Opcionales)
 ```
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=tu_cloud_name_de_cloudinary
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx
 NEXT_PUBLIC_FLOW_API_KEY=tu_api_key_de_flow
 NEXT_PUBLIC_BASE_URL=https://tu-proyecto.vercel.app
 ```
@@ -68,6 +69,7 @@ Estas solo están disponibles en el servidor (API routes):
 CLOUDINARY_CLOUD_NAME=tu_cloud_name_de_cloudinary
 CLOUDINARY_API_KEY=tu_api_key_de_cloudinary
 CLOUDINARY_API_SECRET=tu_api_secret_de_cloudinary
+CLERK_SECRET_KEY=sk_live_xxxxx
 FLOW_SECRET_KEY=tu_secret_key_de_flow
 ```
 

@@ -14,6 +14,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=tu_cloud_name
 CLOUDINARY_API_KEY=123456789012345
 CLOUDINARY_API_SECRET=tu_api_secret_aqui
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+CLERK_SECRET_KEY=sk_test_xxxxx
 ```
 
 ## ❌ Errores Comunes
@@ -88,6 +90,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_key_aqui
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=tu_cloud_name
 CLOUDINARY_API_KEY=tu_api_key
 CLOUDINARY_API_SECRET=tu_api_secret
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+CLERK_SECRET_KEY=sk_test_xxxxx
 
 # Flow Payment (opcional)
 NEXT_PUBLIC_FLOW_API_KEY=tu_flow_api_key

@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { UserButton, SignedIn, SignedOut } from "@clerk/nextjs"
 
 interface NavbarProps {
   textColor?: 'white' | 'black'
   borderColor?: 'white' | 'black'
-  showProfileIcon?: boolean
 }
 
-const Navbar = ({ textColor = 'white', borderColor = 'white', showProfileIcon = false }: NavbarProps) => {
+const Navbar = ({ textColor = 'white', borderColor = 'white' }: NavbarProps) => {
   const router = useRouter()
 
   const navItems = [
@@ -19,11 +19,6 @@ const Navbar = ({ textColor = 'white', borderColor = 'white', showProfileIcon = 
   const textColorClass = textColor === 'black' ? 'text-black' : 'text-white'
   const borderColorClass = borderColor === 'black' ? 'border-black' : 'border-white'
   const hoverBorderClass = borderColor === 'black' ? 'hover:border-black' : 'hover:border-white'
-
-  const handleProfileClick = () => {
-    // TODO: Implementar lógica de autenticación
-    router.push('/auth/login')
-  }
 
   return (
     <nav className="bg-transparent" style={{ borderBottom: 'none' }}>
@@ -46,30 +41,35 @@ const Navbar = ({ textColor = 'white', borderColor = 'white', showProfileIcon = 
             ))}
           </div>
 
-          {/* Icono de perfil a la derecha (si showProfileIcon es true) */}
-          {showProfileIcon && (
-            <div className="flex items-center">
-              <button
-                onClick={handleProfileClick}
-                className={`p-2 ${textColorClass} hover:opacity-70 transition-opacity duration-150 relative`}
-                aria-label="Iniciar sesión"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
+          {/* Sección de autenticación a la derecha */}
+          <div className="flex items-center space-x-3">
+            <SignedIn>
+              <UserButton 
+                afterSignOutUrl="/" 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+              />
+            </SignedIn>
+            <SignedOut>
+              <div className="flex items-center space-x-3">
+                <Link 
+                  href="/sign-in" 
+                  className={`text-sm font-medium uppercase tracking-wider transition-opacity duration-150 hover:opacity-70 ${textColorClass}`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
+                  Iniciar sesión
+                </Link>
+                <Link 
+                  href="/sign-up" 
+                  className={`text-sm font-medium uppercase tracking-wider transition-opacity duration-150 hover:opacity-70 ${textColorClass}`}
+                >
+                  Registrarse
+                </Link>
+              </div>
+            </SignedOut>
+          </div>
         </div>
       </div>
     </nav>

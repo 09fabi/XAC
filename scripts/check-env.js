@@ -48,6 +48,11 @@ const cloudinaryOk =
   checkVar('CLOUDINARY_API_KEY', process.env.CLOUDINARY_API_KEY) &&
   checkVar('CLOUDINARY_API_SECRET', process.env.CLOUDINARY_API_SECRET)
 
+console.log('\n🔐 CLERK:')
+const clerkOk =
+  checkVar('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
+  checkVar('CLERK_SECRET_KEY', process.env.CLERK_SECRET_KEY)
+
 console.log('\n💳 FLOW (opcional):')
 const flowApiKey = checkVar('NEXT_PUBLIC_FLOW_API_KEY', process.env.NEXT_PUBLIC_FLOW_API_KEY, false)
 const flowSecretKey = checkVar('FLOW_SECRET_KEY', process.env.FLOW_SECRET_KEY, false)
@@ -57,7 +62,7 @@ if (flowApiKey && !flowSecretKey) {
 
 console.log('\n' + '='.repeat(50))
 
-if (supabaseOk && cloudinaryOk) {
+if (supabaseOk && cloudinaryOk && clerkOk) {
   console.log('\n✅ Todas las variables requeridas están configuradas!')
   console.log('\n💡 Puedes probar las conexiones con:')
   console.log('   npm run test:supabase')

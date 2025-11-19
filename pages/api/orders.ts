@@ -45,11 +45,6 @@ export default async function handler(
       })
     }
 
-    // Obtener usuario autenticado (implementación futura)
-    // const user = await getAuthenticatedUser(req)
-    // if (!user) {
-    //   return res.status(401).json({ error: 'Unauthorized' })
-    // }
 
     // Consulta real a Supabase
     const { data, error } = await supabase

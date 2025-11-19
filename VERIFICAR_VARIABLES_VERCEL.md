@@ -14,6 +14,8 @@ Si tu aplicación se queda en "Cargando..." en producción, es probable que las 
 ```
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY
 ```
 
 ### 2. Agregar Variables de Entorno
@@ -34,6 +36,16 @@ Si no están configuradas:
    - Value: `tu_clave_anonima_de_supabase` (tu clave real)
    - Environment: Selecciona **Production**, **Preview**, y **Development**
 
+   **Variable 3:**
+   - Name: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+   - Value: `pk_live_xxxxx` (tu clave de producción de Clerk)
+   - Environment: Selecciona **Production**, **Preview**, y **Development**
+
+   **Variable 4:**
+   - Name: `CLERK_SECRET_KEY`
+   - Value: `sk_live_xxxxx` (tu clave secreta de producción de Clerk)
+   - Environment: Selecciona **Production**, **Preview**, y **Development**
+
 4. Haz clic en **Save**
 
 ### 3. Obtener las Credenciales de Supabase
@@ -47,6 +59,20 @@ Si no las tienes:
    - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ⚠️ **IMPORTANTE:** Usa la clave `anon public`, NO la `service_role`
+
+### 3.1 Obtener las Credenciales de Clerk
+
+Si no las tienes:
+
+1. Ve a tu proyecto en [Clerk Dashboard](https://dashboard.clerk.com)
+2. Ve a **API Keys**
+3. Copia:
+   - **Publishable Key** → `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+   - **Secret Key** → `CLERK_SECRET_KEY`
+
+⚠️ **IMPORTANTE:** 
+- En producción, usa las claves que empiezan con `pk_live_` y `sk_live_`
+- No uses las claves de test (`pk_test_` y `sk_test_`) en producción
 
 ### 4. Redesplegar la Aplicación
 

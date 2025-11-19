@@ -25,11 +25,6 @@ const Footer = () => {
                   Recomendaciones
                 </Link>
               </li>
-              <li>
-                <Link href="/profile" className="text-xs text-gray-300 hover:text-white uppercase tracking-wide transition-colors">
-                  Perfil
-                </Link>
-              </li>
             </ul>
           </div>
 
