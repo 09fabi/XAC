@@ -117,9 +117,11 @@ export default function AuthCallback() {
 
         // Si el email no está verificado, redirigir a la página de verificación
         if (!profile?.email_verified) {
+          console.log('📧 Email no verificado, enviando código y redirigiendo...')
+          
           // Enviar código de verificación automáticamente
           try {
-            await fetch('/api/auth/send-verification-code', {
+            const response = await fetch('/api/auth/send-verification-code', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -128,10 +130,19 @@ export default function AuthCallback() {
                 accessToken: session.access_token,
               }),
             })
+            
+            const data = await response.json()
+            if (response.ok) {
+              console.log('✅ Código de verificación enviado')
+            } else {
+              console.error('❌ Error enviando código:', data.error)
+            }
           } catch (err) {
-            console.error('Error sending verification code:', err)
+            console.error('❌ Error sending verification code:', err)
           }
 
+          // Redirigir a verificación
+          console.log('🔄 Redirigiendo a /auth/verify-email')
           router.push('/auth/verify-email')
           return
         }

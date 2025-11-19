@@ -146,11 +146,23 @@ export default function Profile() {
                     <span className="font-medium text-gray-700">Email: </span>
                     <span className="text-gray-900">{user.email}</span>
                   </div>
-                  {isEmailVerified && (
+                  {isEmailVerified ? (
                     <div className="mt-2">
                       <span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
                         ✓ Email verificado
                       </span>
+                    </div>
+                  ) : (
+                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800 mb-3">
+                        ⚠️ Tu email no está verificado. Por favor verifica tu email para acceder a todas las funciones.
+                      </p>
+                      <button
+                        onClick={() => router.push('/auth/verify-email')}
+                        className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors text-sm"
+                      >
+                        Verificar Email
+                      </button>
                     </div>
                   )}
                   <button className="btn-secondary mt-4">

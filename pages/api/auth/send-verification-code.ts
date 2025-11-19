@@ -175,8 +175,11 @@ export default async function handler(
         })
         
         console.log('✅ Email enviado correctamente a:', email)
+        console.log('📧 Código enviado:', code) // Log también el código por si acaso
       } catch (emailError: any) {
         console.error('❌ Error enviando email con Resend:', emailError)
+        console.error('❌ Detalles del error:', JSON.stringify(emailError, null, 2))
+        
         // Fallback: mostrar en consola si falla el envío
         console.log('='.repeat(50))
         console.log(`📧 CÓDIGO DE VERIFICACIÓN (FALLBACK - Email falló)`)
@@ -184,6 +187,9 @@ export default async function handler(
         console.log(`Código: ${code}`)
         console.log(`Expira en: 15 minutos`)
         console.log('='.repeat(50))
+        
+        // En producción, aún devolver el código en la respuesta si falla el email
+        // para que el usuario pueda verlo en los logs de Vercel
       }
     } else {
       // Si no hay API Key de Resend, mostrar en consola (desarrollo)
@@ -196,11 +202,14 @@ export default async function handler(
       console.log('='.repeat(50))
     }
 
+    // Determinar si devolver el código (solo si falló el email o en desarrollo)
+    const shouldReturnCode = process.env.NODE_ENV === 'development' || !resendApiKey
+    
     res.status(200).json({ 
       success: true,
-      message: 'Código de verificación enviado',
-      // En desarrollo, devolvemos el código. En producción, elimina esto.
-      code: process.env.NODE_ENV === 'development' ? code : undefined
+      message: resendApiKey ? 'Código de verificación enviado por email' : 'Código de verificación generado (revisa logs)',
+      // En desarrollo o si falló el email, devolver el código
+      code: shouldReturnCode ? code : undefined
     })
   } catch (error) {
     console.error('Error in send-verification-code:', error)

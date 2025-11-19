@@ -62,13 +62,27 @@ Esta guía te ayudará a configurar el sistema de autenticación con Google OAut
    - **Client Secret (for OAuth)**: El Client Secret que copiaste de Google Cloud
 5. Haz clic en **Save**
 
-### 2.2 Configurar URL de Redirección
+### 2.2 Configurar URLs en Supabase (IMPORTANTE)
 
-En la misma página de configuración de Google:
-- Asegúrate de que la **Redirect URL** esté configurada como:
-  ```
-  https://[tu-proyecto-supabase].supabase.co/auth/v1/callback
-  ```
+**⚠️ CRÍTICO:** Debes configurar las URLs en Supabase para producción:
+
+1. Ve a **Settings** → **Authentication** → **URL Configuration**
+2. En **Site URL**, pon: `https://xac-fawn.vercel.app` (tu URL de Vercel)
+3. En **Redirect URLs**, agrega (una por línea):
+   ```
+   https://xac-fawn.vercel.app/auth/callback
+   http://localhost:3000/auth/callback
+   https://xac-fawn.vercel.app/**
+   ```
+4. Haz clic en **Save**
+
+**Nota:** Si no configuras esto, Google redirigirá a localhost en producción.
+
+### 2.3 Verificar Redirect URL de Google en Supabase
+
+En la misma página de configuración de Google en Supabase:
+- La **Redirect URL** mostrada debe ser: `https://[tu-proyecto-supabase].supabase.co/auth/v1/callback`
+- Esta es automática y no necesitas cambiarla
 
 ## 🗄️ Paso 3: Ejecutar Migración de Base de Datos
 

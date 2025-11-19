@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 import Head from 'next/head'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -18,18 +19,25 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     // Si no hay usuario, redirigir al login
-    if (!user) {
+    if (!user && !loading) {
+      console.log('⚠️ No hay usuario, redirigiendo a login')
       router.push('/auth/login')
       return
     }
 
-    // Verificar si ya está verificado
-    checkEmailVerification().then((verified) => {
-      if (verified) {
-        router.push('/profile')
-      }
-    })
-  }, [user, router, checkEmailVerification])
+    // Si hay usuario, verificar estado de verificación
+    if (user) {
+      console.log('👤 Usuario encontrado, verificando estado de email...')
+      checkEmailVerification().then((verified) => {
+        if (verified) {
+          console.log('✅ Email ya verificado, redirigiendo a perfil')
+          router.push('/profile')
+        } else {
+          console.log('📧 Email no verificado, mostrando página de verificación')
+        }
+      })
+    }
+  }, [user, loading, router, checkEmailVerification])
 
   useEffect(() => {
     // Countdown para reenvío de código
@@ -117,18 +125,19 @@ export default function VerifyEmail() {
         throw new Error(data.error || 'Error al enviar código')
       }
 
-      showSuccess('Código de verificación enviado')
       setCountdown(60) // 60 segundos de espera
 
-      // En desarrollo, mostrar el código
+      // Mostrar mensaje según si se envió por email o no
       if (data.code) {
+        // Si devolvió el código, significa que no se envió por email (desarrollo o falló)
         console.log('='.repeat(50))
-        console.log('📧 CÓDIGO DE VERIFICACIÓN (DESARROLLO)')
+        console.log('📧 CÓDIGO DE VERIFICACIÓN')
         console.log(`Código: ${data.code}`)
         console.log('='.repeat(50))
-        showSuccess(`Código enviado. Revisa la consola del servidor o aquí: ${data.code}`)
+        showSuccess(`Código generado: ${data.code} (Revisa tu email o los logs de Vercel)`)
       } else {
-        showSuccess('Código de verificación enviado. Revisa tu email.')
+        // Si no devolvió código, se envió por email correctamente
+        showSuccess('✅ Código de verificación enviado por email. Revisa tu bandeja de entrada.')
       }
     } catch (error: any) {
       console.error('Error sending code:', error)
@@ -164,6 +173,14 @@ export default function VerifyEmail() {
               <p className="mt-1 text-center text-sm font-medium text-gray-900">
                 {user.email}
               </p>
+              <div className="mt-4 text-center">
+                <Link
+                  href="/"
+                  className="text-sm text-primary-600 hover:text-primary-500"
+                >
+                  ← Volver al inicio
+                </Link>
+              </div>
             </div>
 
             <form className="mt-8 space-y-6" onSubmit={handleVerify}>
