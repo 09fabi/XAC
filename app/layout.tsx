@@ -1,6 +1,6 @@
 "use client";
 import { ClerkProvider } from "@clerk/nextjs";
-import { esES } from "@clerk/localizations";
+import { customESLocalization } from "@/lib/clerk-localization";
 import "../styles/globals.css";
 
 export default function RootLayout({
@@ -10,7 +10,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
-      localization={esES}
+      localization={customESLocalization}
       appearance={{
         layout: {
           unsafe_disableDevelopmentModeWarnings: true,

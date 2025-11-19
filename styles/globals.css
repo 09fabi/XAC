@@ -369,3 +369,210 @@ span[class*="footer"],
   border-radius: 0 !important;
 }
 
+/* Ocultar placeholders en inputs de Clerk */
+.cl-formFieldInput::placeholder,
+.cl-input::placeholder,
+input[class*="cl-"]::placeholder {
+  color: transparent !important;
+  opacity: 0 !important;
+}
+
+/* Ocultar texto "Opcional" */
+.cl-formFieldHintText,
+[class*="formFieldHintText"],
+[class*="optional"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ocultar subtítulo en sign up que dice "para continuar en xac" */
+.cl-headerSubtitle {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Estilos para mensajes de error de Clerk - diseño minimalista blanco y negro */
+.cl-alert,
+.cl-alertText,
+.cl-formFieldErrorText,
+.cl-formFieldError,
+[class*="cl-alert"],
+[class*="alert"],
+[class*="error"],
+[class*="formFieldError"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0 !important;
+  padding: 1rem 1.5rem !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-size: 0.875rem !important;
+}
+
+/* Mensajes de error específicos */
+.cl-formFieldErrorText,
+.cl-formFieldError,
+div[class*="formFieldError"],
+span[class*="formFieldError"],
+p[class*="formFieldError"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0 !important;
+  margin-top: 0.5rem !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Páginas de error de Clerk - diseño minimalista */
+.cl-errorPage,
+.cl-errorPageBox,
+[class*="cl-error"],
+[class*="errorPage"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0 !important;
+}
+
+.cl-errorPageTitle,
+.cl-errorPageHeading,
+[class*="errorPageTitle"],
+[class*="errorPageHeading"],
+h1[class*="error"],
+h2[class*="error"] {
+  color: #000000 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border: none !important;
+}
+
+.cl-errorPageText,
+.cl-errorPageDescription,
+[class*="errorPageText"],
+[class*="errorPageDescription"],
+p[class*="error"] {
+  color: #000000 !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Botones en páginas de error */
+.cl-errorPageButton,
+.cl-button[class*="error"],
+button[class*="error"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0 !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  transition: all 0.3s ease !important;
+}
+
+.cl-errorPageButton:hover,
+.cl-button[class*="error"]:hover,
+button[class*="error"]:hover {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+/* Alertas y notificaciones de Clerk - mismo estilo que Alert component */
+.cl-alert,
+.cl-toast,
+.cl-notification,
+[class*="cl-alert"],
+[class*="cl-toast"],
+[class*="cl-notification"],
+[class*="alert"],
+[class*="toast"],
+[class*="notification"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0 !important;
+  padding: 1rem 1.5rem !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-size: 0.875rem !important;
+  box-shadow: none !important;
+}
+
+/* Iconos en alertas de Clerk */
+.cl-alert svg,
+.cl-toast svg,
+[class*="cl-alert"] svg,
+[class*="cl-toast"] svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+  fill: none !important;
+}
+
+/* Botón de cerrar en alertas */
+.cl-alert button,
+.cl-toast button,
+[class*="cl-alert"] button,
+[class*="cl-toast"] button {
+  color: #000000 !important;
+  border: 1px solid transparent !important;
+  border-radius: 0 !important;
+  padding: 0.25rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.cl-alert button:hover,
+.cl-toast button:hover,
+[class*="cl-alert"] button:hover,
+[class*="cl-toast"] button:hover {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+/* Mensajes de éxito/info/warning también en blanco y negro */
+.cl-alert[class*="success"],
+.cl-alert[class*="info"],
+.cl-alert[class*="warning"],
+[class*="cl-alert"][class*="success"],
+[class*="cl-alert"][class*="info"],
+[class*="cl-alert"][class*="warning"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+
+/* Cualquier mensaje o texto de error en Clerk */
+.cl-formFieldError,
+.cl-fieldError,
+[class*="fieldError"],
+[class*="formError"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0 !important;
+  padding: 0.5rem 0.75rem !important;
+  margin-top: 0.5rem !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+

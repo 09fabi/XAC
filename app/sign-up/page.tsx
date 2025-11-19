@@ -31,6 +31,10 @@ export default function Page() {
               formFieldLabel: "text-white font-medium uppercase tracking-wider text-sm",
               formFieldInput: "bg-black text-white border-2 border-white focus:border-white focus:ring-0",
               formFieldInputShowPasswordButton: "text-white hover:text-gray-400",
+              formFieldErrorText: "bg-white text-black border-2 border-black rounded-none uppercase tracking-wider text-xs",
+              formFieldError: "bg-white text-black border-2 border-black rounded-none uppercase tracking-wider text-xs",
+              alert: "bg-white text-black border-2 border-black rounded-none uppercase tracking-wider",
+              alertText: "bg-white text-black border-2 border-black rounded-none uppercase tracking-wider",
               footer: "bg-black !important",
               footerAction: "bg-black !important",
               footerActionLink: "text-white hover:text-gray-400 font-medium bg-black !important",
@@ -47,6 +51,10 @@ export default function Page() {
             variables: {
               colorText: "#ffffff",
               colorTextSecondary: "#9ca3af",
+              colorDanger: "#000000",
+              colorSuccess: "#000000",
+              colorWarning: "#000000",
+              colorNeutral: "#000000",
             },
           }}
         />
