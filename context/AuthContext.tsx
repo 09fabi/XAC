@@ -6,7 +6,9 @@ interface UserProfile {
   id: string
   email: string
   name?: string
+  email_verified?: boolean
   created_at?: string
+  updated_at?: string
 }
 
 interface AuthContextType {
