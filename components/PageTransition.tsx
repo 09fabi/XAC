@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { useRouter } from 'next/router'
 import { ReactNode } from 'react'
 
@@ -6,7 +6,7 @@ interface PageTransitionProps {
   children: ReactNode
 }
 
-const pageVariants = {
+const pageVariants: Variants = {
   initial: {
     opacity: 0,
   },
@@ -14,14 +14,14 @@ const pageVariants = {
     opacity: 1,
     transition: {
       duration: 0.5,
-      ease: [0.4, 0, 0.2, 1],
+      ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
     },
   },
   exit: {
     opacity: 0,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1],
+      ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
     },
   },
 }

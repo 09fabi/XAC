@@ -30,8 +30,29 @@ export default async function handler(
         ? req.query.status
         : null
 
+    // Detectar URL base automáticamente
+    // Prioridad: 1. Variable de entorno, 2. URL del request (producción), 3. localhost (desarrollo)
+    let baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+    
+    if (!baseUrl || baseUrl.includes('localhost')) {
+      // Si no hay URL configurada o es localhost, intentar detectar desde el request
+      const host = req.headers.host
+      const protocol = req.headers['x-forwarded-proto'] || (host?.includes('localhost') ? 'http' : 'https')
+      
+      if (host && !host.includes('localhost')) {
+        // Estamos en producción, usar la URL del request
+        baseUrl = `${protocol}://${host}`
+      } else {
+        // Desarrollo local
+        baseUrl = 'http://localhost:3000'
+      }
+    }
+    
+    // Asegurar que la URL no termine con /
+    baseUrl = baseUrl.replace(/\/$/, '')
+    
     // Construir URL de redirección con los parámetros
-    const redirectUrl = new URL('/cart', process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000')
+    const redirectUrl = new URL('/cart', baseUrl)
     
     if (status === '2' || status === '3') {
       // Status 2 = Pagado, Status 3 = Anulado

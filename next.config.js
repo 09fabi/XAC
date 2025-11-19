@@ -14,8 +14,9 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
-    domains: ['res.cloudinary.com', 'images.unsplash.com'],
   },
+  // Las variables NEXT_PUBLIC_* están disponibles automáticamente en Next.js
+  // No necesitan estar en env, pero las mantenemos para compatibilidad
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
