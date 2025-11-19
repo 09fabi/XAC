@@ -7,6 +7,9 @@ export default function Page() {
       <SignIn 
         routing="path"
         path="/sign-in"
+        signUpUrl="/sign-up"
+        afterSignInUrl="/"
+        fallbackRedirectUrl="/"
         appearance={{
           elements: {
             formButtonPrimary: "bg-black text-white hover:bg-neutral-800",
