@@ -1,7 +1,10 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
 
 interface Order {
   id: string
@@ -12,16 +15,58 @@ interface Order {
 }
 
 export default function Profile() {
+  const router = useRouter()
+  const { user: authUser, loading: authLoading, isEmailVerified } = useAuth()
   const [user, setUser] = useState<{ name: string; email: string } | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
 
   useEffect(() => {
-    // Simular carga de datos del usuario
-    // En producción, esto vendría de Supabase Auth
-    setUser({
-      name: 'Usuario Demo',
-      email: 'usuario@example.com',
-    })
+    // Si no hay usuario autenticado, redirigir al login
+    if (!authLoading && !authUser) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Si el usuario no ha verificado su email, redirigir a verificación
+    if (authUser && !isEmailVerified) {
+      router.push('/auth/verify-email')
+      return
+    }
+
+    // Cargar datos del usuario desde el perfil
+    if (authUser) {
+      const loadUserProfile = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .select('name, email')
+            .eq('id', authUser.id)
+            .single()
+
+          if (error) {
+            console.error('Error loading profile:', error)
+            // Usar datos del auth como fallback
+            setUser({
+              name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'Usuario',
+              email: authUser.email || '',
+            })
+          } else {
+            setUser({
+              name: data?.name || authUser.user_metadata?.full_name || 'Usuario',
+              email: data?.email || authUser.email || '',
+            })
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error)
+          setUser({
+            name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'Usuario',
+            email: authUser.email || '',
+          })
+        }
+      }
+
+      loadUserProfile()
+    }
 
     // Cargar historial de pedidos
     const fetchOrders = async () => {
@@ -55,7 +100,7 @@ export default function Profile() {
     }
 
     fetchOrders()
-  }, [])
+  }, [authUser, authLoading, isEmailVerified, router])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', {
@@ -89,7 +134,9 @@ export default function Profile() {
             {/* Información del Usuario */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Información Personal</h2>
-              {user ? (
+              {authLoading ? (
+                <p className="text-gray-600">Cargando información...</p>
+              ) : user ? (
                 <div className="space-y-3">
                   <div>
                     <span className="font-medium text-gray-700">Nombre: </span>
@@ -99,12 +146,19 @@ export default function Profile() {
                     <span className="font-medium text-gray-700">Email: </span>
                     <span className="text-gray-900">{user.email}</span>
                   </div>
+                  {isEmailVerified && (
+                    <div className="mt-2">
+                      <span className="inline-block px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        ✓ Email verificado
+                      </span>
+                    </div>
+                  )}
                   <button className="btn-secondary mt-4">
                     Editar Perfil
                   </button>
                 </div>
               ) : (
-                <p className="text-gray-600">Cargando información...</p>
+                <p className="text-gray-600">No se pudo cargar la información</p>
               )}
             </div>
 
