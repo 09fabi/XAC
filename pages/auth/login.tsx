@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { useAlert } from '@/context/AlertContext'
+import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
@@ -112,23 +113,42 @@ export default function LoginPage() {
     setErrors({})
 
     try {
-      const { error } = await signUp(email, password, name)
+      const result = await signUp(email, password, name)
 
-      if (error) {
-        if (error.message.includes('User already registered')) {
+      if (result.error) {
+        if (result.error.message.includes('User already registered')) {
           setErrors({ email: 'Este email ya está registrado' })
-        } else if (error.message.includes('Password')) {
-          setErrors({ password: error.message })
+        } else if (result.error.message.includes('Password')) {
+          setErrors({ password: result.error.message })
         } else {
-          showError(error.message || 'Error al registrarse')
+          showError(result.error.message || 'Error al registrarse')
         }
+        setFormLoading(false)
         return
       }
 
-      // Éxito - mostrar mensaje y redirigir
-      showSuccess(`¡Bienvenido a XAC, ${name}!`)
-      const redirectTo = router.query.redirect as string || '/'
-      router.push(redirectTo)
+      // Si hay sesión en el resultado, el usuario está autenticado
+      if (result.session) {
+        // Esperar un momento para que el AuthContext se actualice
+        await new Promise(resolve => setTimeout(resolve, 500))
+        showSuccess(`¡Bienvenido a XAC, ${name}!`)
+        const redirectTo = router.query.redirect as string || '/'
+        router.push(redirectTo)
+      } else {
+        // No hay sesión - puede requerir confirmación de email
+        // Esperar un momento y verificar de nuevo por si acaso
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session) {
+          showSuccess(`¡Bienvenido a XAC, ${name}!`)
+          const redirectTo = router.query.redirect as string || '/'
+          router.push(redirectTo)
+        } else {
+          showSuccess('¡Registro exitoso! Por favor, verifica tu email para activar tu cuenta.')
+          router.push('/auth/login')
+        }
+      }
     } catch (error) {
       showError('Error inesperado al registrarse')
       console.error('Register error:', error)

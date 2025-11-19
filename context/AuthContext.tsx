@@ -15,7 +15,7 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
-  signUp: (email: string, password: string, name?: string) => Promise<{ error: AuthError | null }>
+  signUp: (email: string, password: string, name?: string) => Promise<{ error: AuthError | null; session?: Session | null; user?: User | null }>
   signOut: () => Promise<void>
   signInWithGoogle: () => Promise<void>
   refreshSession: () => Promise<void>
@@ -246,6 +246,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: {
             name: name || '',
           },
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
         },
       })
 
@@ -253,11 +254,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error }
       }
 
-      if (data.user) {
+      // Si hay sesión después del registro (puede no haberla si requiere confirmación de email)
+      if (data.session) {
+        setSession(data.session)
+        setUser(data.session.user)
+        
+        if (data.session.user) {
+          await createOrUpdateProfile(data.session.user, name)
+        }
+      } else if (data.user) {
+        // Usuario creado pero sin sesión (requiere confirmación de email)
+        // Aún así creamos el perfil para cuando confirme
         await createOrUpdateProfile(data.user, name)
       }
 
-      return { error: null }
+      return { error: null, session: data.session, user: data.user }
     } catch (error) {
       return { error: error as AuthError }
     } finally {

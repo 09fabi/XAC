@@ -14,8 +14,43 @@ export default function AuthCallback() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let mounted = true
+    let timeoutId: NodeJS.Timeout
+
     const handleAuthCallback = async () => {
       try {
+        if (!mounted) return
+
+        console.log('AuthCallback: Iniciando procesamiento...')
+        console.log('URL completa:', window.location.href)
+        console.log('Hash:', window.location.hash)
+        console.log('Query params:', window.location.search)
+
+        // Esperar un momento para que Supabase procese la redirección
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        // Verificar primero si ya hay una sesión activa (Supabase puede haberla establecido automáticamente)
+        const { data: { session: existingSession }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (!mounted) return
+
+        if (existingSession && !sessionError) {
+          console.log('AuthCallback: Sesión existente encontrada')
+          await refreshSession()
+          
+          if (!mounted) return
+          
+          const userName = existingSession.user.user_metadata?.name || 
+                         existingSession.user.user_metadata?.full_name || 
+                         existingSession.user.email?.split('@')[0] || 
+                         'Usuario'
+          
+          showSuccess(`¡Bienvenido a XAC, ${userName}!`)
+          const redirectTo = router.query.redirect as string || '/'
+          router.push(redirectTo)
+          return
+        }
+
         // Obtener el hash de la URL (#access_token=...)
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
         const accessToken = hashParams.get('access_token')
@@ -23,36 +58,43 @@ export default function AuthCallback() {
         const errorParam = hashParams.get('error')
         const errorDescription = hashParams.get('error_description')
 
+        console.log('AuthCallback: Tokens del hash:', { 
+          hasAccessToken: !!accessToken, 
+          hasRefreshToken: !!refreshToken,
+          error: errorParam 
+        })
+
         // Si hay un error en la URL
         if (errorParam) {
           const errorMessage = errorDescription || errorParam
+          console.error('AuthCallback: Error en URL:', errorMessage)
           setError(errorMessage)
           showError(`Error de autenticación: ${errorMessage}`)
           setLoading(false)
           
-          // Redirigir al login después de 3 segundos
           setTimeout(() => {
             router.push('/auth/login')
           }, 3000)
           return
         }
 
-        // Si hay tokens, establecer la sesión
+        // Si hay tokens en el hash, establecer la sesión
         if (accessToken && refreshToken) {
+          console.log('AuthCallback: Estableciendo sesión con tokens del hash')
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           })
 
           if (sessionError) {
+            console.error('AuthCallback: Error al establecer sesión:', sessionError)
             throw sessionError
           }
 
           if (data.user) {
-            // Refrescar la sesión en el contexto
+            console.log('AuthCallback: Sesión establecida correctamente')
             await refreshSession()
             
-            // Obtener el nombre del usuario desde los metadatos
             const userName = data.user.user_metadata?.name || 
                            data.user.user_metadata?.full_name || 
                            data.user.email?.split('@')[0] || 
@@ -60,44 +102,123 @@ export default function AuthCallback() {
 
             showSuccess(`¡Bienvenido a XAC, ${userName}!`)
             
-            // Redirigir a la página principal o a la URL de redirect
             const redirectTo = router.query.redirect as string || '/'
             router.push(redirectTo)
+            return
           }
-        } else {
-          // No hay tokens, verificar si hay una sesión activa
-          const { data: { session } } = await supabase.auth.getSession()
-          
-          if (session) {
+        }
+
+        // Si no hay tokens en el hash, verificar query parameters (algunos proveedores OAuth usan query)
+        const queryParams = new URLSearchParams(window.location.search)
+        const queryAccessToken = queryParams.get('access_token')
+        const queryRefreshToken = queryParams.get('refresh_token')
+
+        if (queryAccessToken && queryRefreshToken) {
+          console.log('AuthCallback: Tokens encontrados en query params')
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: queryAccessToken,
+            refresh_token: queryRefreshToken,
+          })
+
+          if (sessionError) {
+            throw sessionError
+          }
+
+          if (data.user) {
             await refreshSession()
-            const userName = session.user.user_metadata?.name || 
-                           session.user.user_metadata?.full_name || 
-                           session.user.email?.split('@')[0] || 
+            const userName = data.user.user_metadata?.name || 
+                           data.user.user_metadata?.full_name || 
+                           data.user.email?.split('@')[0] || 
                            'Usuario'
-            
+
             showSuccess(`¡Bienvenido a XAC, ${userName}!`)
             const redirectTo = router.query.redirect as string || '/'
             router.push(redirectTo)
-          } else {
-            throw new Error('No se pudo obtener la sesión')
+            return
           }
         }
+
+        // Si llegamos aquí, no hay tokens ni sesión
+        console.warn('AuthCallback: No se encontraron tokens ni sesión')
+        
+        // Intentar una última vez después de esperar
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        const { data: { session: finalSession } } = await supabase.auth.getSession()
+        
+        if (!mounted) return
+
+        if (finalSession) {
+          console.log('AuthCallback: Sesión encontrada en segundo intento')
+          await refreshSession()
+          
+          if (!mounted) return
+          
+          const userName = finalSession.user.user_metadata?.name || 
+                         finalSession.user.user_metadata?.full_name || 
+                         finalSession.user.email?.split('@')[0] || 
+                         'Usuario'
+          
+          showSuccess(`¡Bienvenido a XAC, ${userName}!`)
+          const redirectTo = router.query.redirect as string || '/'
+          router.push(redirectTo)
+          return
+        }
+
+        throw new Error('No se pudo obtener la sesión. Por favor, intenta de nuevo.')
       } catch (err: any) {
-        console.error('Error en callback:', err)
+        if (!mounted) return
+        
+        console.error('AuthCallback: Error completo:', err)
         const errorMessage = err.message || 'Error al autenticarse'
         setError(errorMessage)
         showError(`Error: ${errorMessage}`)
         
-        // Redirigir al login después de 3 segundos
-        setTimeout(() => {
-          router.push('/auth/login')
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            router.push('/auth/login')
+          }
         }, 3000)
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
-    handleAuthCallback()
+    // Escuchar cambios en el estado de autenticación (por si Supabase establece la sesión automáticamente)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+
+      console.log('AuthCallback: Auth state changed:', event, session?.user?.email)
+
+      if (event === 'SIGNED_IN' && session) {
+        console.log('AuthCallback: Usuario autenticado vía onAuthStateChange')
+        clearTimeout(timeoutId)
+        await refreshSession()
+        
+        if (!mounted) return
+
+        const userName = session.user.user_metadata?.name || 
+                       session.user.user_metadata?.full_name || 
+                       session.user.email?.split('@')[0] || 
+                       'Usuario'
+        
+        showSuccess(`¡Bienvenido a XAC, ${userName}!`)
+        const redirectTo = router.query.redirect as string || '/'
+        router.push(redirectTo)
+      }
+    })
+
+    // Iniciar el procesamiento después de un breve delay
+    timeoutId = setTimeout(() => {
+      handleAuthCallback()
+    }, 500)
+
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+      subscription.unsubscribe()
+    }
   }, [router, refreshSession, showSuccess, showError])
 
   return (
