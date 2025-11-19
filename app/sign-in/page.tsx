@@ -28,7 +28,7 @@ export default function Page() {
       const alerts = document.querySelectorAll('.cl-alert, .cl-alertText, .cl-alertDanger, .cl-alertError, [class*="cl-alert"]');
       
       alerts.forEach((alert) => {
-        const text = alert.textContent || alert.innerText || "";
+        const text = alert.textContent || (alert as HTMLElement).innerText || "";
         const textLower = text.toLowerCase();
         
         // Si contiene el mensaje de error, ocultarlo
