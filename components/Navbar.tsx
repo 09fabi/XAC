@@ -52,7 +52,10 @@ const Navbar = ({ textColor = 'white', borderColor = 'white' }: NavbarProps) => 
 
           {/* Botones de autenticación a la derecha */}
           <div className="flex items-center space-x-4">
-            {!loading && (
+            {loading ? (
+              // Mostrar algo mientras carga, o simplemente no mostrar nada
+              <div className="w-20 h-6"></div> // Espacio reservado
+            ) : (
               <>
                 {user ? (
                   <>

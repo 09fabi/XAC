@@ -24,14 +24,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Obtener sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        checkEmailVerificationStatus(session.user.id)
-      }
-      setLoading(false)
-    })
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.error('Error getting session:', error)
+        }
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          checkEmailVerificationStatus(session.user.id)
+        }
+        setLoading(false)
+      })
+      .catch((error) => {
+        console.error('Error in getSession:', error)
+        setLoading(false) // Asegurar que loading se ponga en false incluso si hay error
+      })
 
     // Escuchar cambios en la autenticación
     const {
