@@ -1,6 +1,7 @@
 "use client";
 import { ClerkProvider } from "@clerk/nextjs";
 import { customESLocalization } from "@/lib/clerk-localization";
+import { AlertProvider } from "@/context/AlertContext";
 import "../styles/globals.css";
 
 export default function RootLayout({
@@ -17,9 +18,11 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="es">
-        <body>{children}</body>
-      </html>
+      <AlertProvider>
+        <html lang="es">
+          <body>{children}</body>
+        </html>
+      </AlertProvider>
     </ClerkProvider>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAlert } from "@/context/AlertContext";
 
 function SSOCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { showError } = useAlert();
 
   useEffect(() => {
     // Verificar que searchParams no sea null
@@ -13,26 +14,35 @@ function SSOCallbackContent() {
       return;
     }
 
+    // Verificar si el usuario viene de volver atrás intencionalmente
+    const isBackNavigation = sessionStorage.getItem("clerk_user_cancelled") === "true";
+    
+    if (isBackNavigation) {
+      // Limpiar el flag y redirigir al inicio sin mostrar alert
+      sessionStorage.removeItem("clerk_user_cancelled");
+      router.push("/");
+      return;
+    }
+
     // Cuando Clerk redirige a sso-callback sin parámetros de error,
     // generalmente significa que el usuario intentó iniciar sesión pero no existe
-    // Mostrar alert inmediatamente
-    const showAlert = () => {
-      alert("No tienes una cuenta registrada. Por favor, regístrate primero.");
-      setErrorMessage("No tienes una cuenta registrada. Por favor, regístrate primero.");
+    const handleUserNotFound = () => {
+      // Mostrar alert minimalista
+      showError("No tienes una cuenta registrada. Por favor, regístrate primero.", 3000);
       
-      // Redirigir a sign-up después de un breve delay
+      // Redirigir a página de redirección después de mostrar el alert
       setTimeout(() => {
-        router.push("/sign-up");
-      }, 1500);
+        router.push("/redirecting");
+      }, 1000);
     };
 
     // Verificar si hay parámetros de error explícitos
     const error = searchParams.get("error");
     const errorDescription = searchParams.get("error_description");
     
-    // Si hay parámetros de error, mostrar mensaje
+    // Si hay parámetros de error, manejar como usuario no encontrado
     if (error || errorDescription) {
-      showAlert();
+      handleUserNotFound();
       return;
     }
 
@@ -45,7 +55,7 @@ function SSOCallbackContent() {
     
     if (!hasSuccessParams) {
       // No hay parámetros de éxito, probablemente el usuario no existe
-      showAlert();
+      handleUserNotFound();
       return;
     }
 
@@ -60,27 +70,13 @@ function SSOCallbackContent() {
     } catch {
       router.push("/");
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, showError]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="text-center">
-        {errorMessage ? (
-          <>
-            <div className="mb-4">
-              <svg className="mx-auto h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p className="text-lg mb-4">{errorMessage}</p>
-            <p className="text-sm text-gray-400">Redirigiendo a registro...</p>
-          </>
-        ) : (
-          <>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-lg">Procesando autenticación...</p>
-          </>
-        )}
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+        <p className="text-lg uppercase tracking-wider">Procesando autenticación...</p>
       </div>
     </div>
   );

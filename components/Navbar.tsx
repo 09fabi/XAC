@@ -26,13 +26,24 @@ const Navbar = ({ textColor = 'white', borderColor = 'white', showTitle = false,
 
   // Modo simple para login/register: solo título con botón de volver
   if (simple) {
+    const handleBackClick = () => {
+      // Si estamos en sign-up y venimos de redirecting, ir al inicio sin alert
+      if (pathname === "/sign-up" && (document.referrer.includes("/redirecting") || sessionStorage.getItem("from_redirecting") === "true")) {
+        sessionStorage.removeItem("from_redirecting");
+        sessionStorage.setItem("clerk_user_cancelled", "true");
+        router.push("/");
+      } else {
+        router.back();
+      }
+    };
+
     return (
       <nav className="bg-transparent" style={{ borderBottom: 'none' }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex items-center justify-center relative py-3 md:py-4">
             {/* Botón de volver a la izquierda */}
             <button
-              onClick={() => router.back()}
+              onClick={handleBackClick}
               className={`absolute left-0 sm:left-2 ${textColorClass} hover:opacity-70 transition-opacity`}
               aria-label="Volver atrás"
             >

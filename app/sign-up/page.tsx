@@ -1,9 +1,31 @@
 "use client";
 import { SignUp } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function Page() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Detectar cuando el usuario hace clic en "volver atrás" desde el navbar
+    // Esto se maneja en el componente Navbar, pero aquí verificamos si viene de redirecting
+    const handleBackNavigation = () => {
+      // Si el usuario viene de redirecting y hace clic en volver, ir al inicio
+      if (document.referrer.includes("/redirecting")) {
+        sessionStorage.setItem("clerk_user_cancelled", "true");
+      }
+    };
+
+    // Escuchar eventos de navegación
+    window.addEventListener("popstate", handleBackNavigation);
+    
+    return () => {
+      window.removeEventListener("popstate", handleBackNavigation);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-black">
       {/* Navbar arriba */}
