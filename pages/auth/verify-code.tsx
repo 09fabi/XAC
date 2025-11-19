@@ -1,42 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { useAuth } from '@/context/AuthContext'
-import { useAlert } from '@/context/AlertContext'
-import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
 export default function VerifyCodePage() {
   const router = useRouter()
-  const { user, profile, loading: authLoading, refreshSession } = useAuth()
-  const { showError, showSuccess } = useAlert()
   const [code, setCode] = useState(['', '', '', '', '', ''])
   const [verifying, setVerifying] = useState(false)
   const [resending, setResending] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
-  // Redirigir si no está autenticado
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/login')
-    }
-  }, [user, authLoading, router])
-
-  // Redirigir si ya está verificado
-  useEffect(() => {
-    if (profile?.email_verified) {
-      router.push('/')
-    }
-  }, [profile, router])
-
   // Countdown para reenvío
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [countdown])
+  if (countdown > 0) {
+    setTimeout(() => setCountdown(countdown - 1), 1000)
+  }
 
   // Manejar entrada de código
   const handleCodeChange = (index: number, value: string) => {
@@ -61,118 +39,36 @@ export default function VerifyCodePage() {
     }
   }
 
-  // Verificar código
+  // Verificar código (solo UI, sin funcionalidad)
   const handleVerify = async () => {
-    if (!user) return
-
     const codeString = code.join('')
     if (codeString.length !== 6) {
-      showError('Por favor, ingresa el código completo de 6 dígitos')
       return
     }
 
     setVerifying(true)
-
-    try {
-      // Obtener token de sesión
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-
-      const response = await fetch('/api/auth/verify-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          code: codeString,
-          userId: user.id,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        showError(data.error || 'Error al verificar código')
-        // Limpiar código en caso de error
-        setCode(['', '', '', '', '', ''])
-        document.getElementById('code-0')?.focus()
-        return
-      }
-
-      showSuccess('¡Email verificado correctamente!')
-      
-      // Refrescar el perfil en el contexto
-      await refreshSession()
-      
-      // Esperar un momento y redirigir
-      setTimeout(() => {
-        router.push('/')
-      }, 1000)
-    } catch (error) {
-      console.error('Error verificando código:', error)
-      showError('Error al verificar código. Por favor, intenta de nuevo.')
-      setCode(['', '', '', '', '', ''])
-      document.getElementById('code-0')?.focus()
-    } finally {
+    // TODO: Implementar verificación
+    console.log('Verificar código:', codeString)
+    
+    setTimeout(() => {
       setVerifying(false)
-    }
+    }, 1000)
   }
 
-  // Reenviar código
+  // Reenviar código (solo UI, sin funcionalidad)
   const handleResend = async () => {
-    if (!user || countdown > 0) return
+    if (countdown > 0) return
 
     setResending(true)
-
-    try {
-      // Obtener token de sesión
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-
-      const response = await fetch('/api/auth/send-verification-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          email: user.email,
-          userId: user.id,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        showError(data.error || 'Error al reenviar código')
-        return
-      }
-
-      showSuccess(data.message || 'Código reenviado. Revisa tu email.')
-      setCountdown(60) // 60 segundos de espera
-      
-      // Limpiar código actual
+    // TODO: Implementar reenvío
+    console.log('Reenviar código')
+    
+    setTimeout(() => {
+      setResending(false)
+      setCountdown(60)
       setCode(['', '', '', '', '', ''])
       document.getElementById('code-0')?.focus()
-    } catch (error) {
-      console.error('Error reenviando código:', error)
-      showError('Error al reenviar código. Por favor, intenta de nuevo.')
-    } finally {
-      setResending(false)
-    }
-  }
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-lg">Cargando...</div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
+    }, 1000)
   }
 
   return (
@@ -195,7 +91,7 @@ export default function VerifyCodePage() {
             <p className="text-gray-400 text-center mb-8">
               Hemos enviado un código de verificación de 6 dígitos a:
               <br />
-              <span className="text-white font-semibold">{user.email}</span>
+              <span className="text-white font-semibold">usuario@email.com</span>
             </p>
 
             {/* Inputs de código */}
@@ -243,15 +139,6 @@ export default function VerifyCodePage() {
                   : 'Reenviar código'}
               </button>
             </div>
-
-            {/* Nota para desarrollo */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-8 p-4 bg-gray-900 border-2 border-white text-center">
-                <p className="text-sm text-gray-400 mb-2">
-                  💡 En desarrollo, el código aparece en la consola del servidor
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -260,4 +147,3 @@ export default function VerifyCodePage() {
     </>
   )
 }
-

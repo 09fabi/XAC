@@ -4,19 +4,14 @@ import { useRouter } from 'next/router'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useCart } from '@/context/CartContext'
-import { useAuth } from '@/context/AuthContext'
 
 export default function Home() {
   const router = useRouter()
   const { getTotalItems } = useCart()
-  const { user } = useAuth()
 
   const handleProfileClick = () => {
-    if (user) {
-      router.push('/profile')
-    } else {
-      router.push('/auth/login')
-    }
+    // TODO: Implementar lógica de autenticación
+    router.push('/auth/login')
   }
 
   return (
@@ -84,7 +79,7 @@ export default function Home() {
                 <button
                   onClick={handleProfileClick}
                   className="p-2 text-white hover:opacity-70 transition-opacity duration-150 relative"
-                  aria-label={user ? 'Ver perfil' : 'Iniciar sesión'}
+                  aria-label="Iniciar sesión"
                 >
                   <svg
                     className="w-6 h-6"
@@ -99,10 +94,6 @@ export default function Home() {
                       d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
                     />
                   </svg>
-                  {/* Indicador visual si está autenticado */}
-                  {user && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full border border-black"></span>
-                  )}
                 </button>
                 <Link
                   href="/cart"

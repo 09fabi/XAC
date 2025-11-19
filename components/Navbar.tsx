@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useAuth } from '@/context/AuthContext'
 
 interface NavbarProps {
   textColor?: 'white' | 'black'
@@ -10,7 +9,6 @@ interface NavbarProps {
 
 const Navbar = ({ textColor = 'white', borderColor = 'white', showProfileIcon = false }: NavbarProps) => {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
 
   const navItems = [
     { href: '/', label: 'Inicio' },
@@ -23,11 +21,8 @@ const Navbar = ({ textColor = 'white', borderColor = 'white', showProfileIcon = 
   const hoverBorderClass = borderColor === 'black' ? 'hover:border-black' : 'hover:border-white'
 
   const handleProfileClick = () => {
-    if (user) {
-      router.push('/profile')
-    } else {
-      router.push('/auth/login')
-    }
+    // TODO: Implementar lógica de autenticación
+    router.push('/auth/login')
   }
 
   return (
@@ -57,7 +52,7 @@ const Navbar = ({ textColor = 'white', borderColor = 'white', showProfileIcon = 
               <button
                 onClick={handleProfileClick}
                 className={`p-2 ${textColorClass} hover:opacity-70 transition-opacity duration-150 relative`}
-                aria-label={user ? 'Ver perfil' : 'Iniciar sesión'}
+                aria-label="Iniciar sesión"
               >
                 <svg
                   className="w-6 h-6"
@@ -72,10 +67,6 @@ const Navbar = ({ textColor = 'white', borderColor = 'white', showProfileIcon = 
                     d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
                   />
                 </svg>
-                {/* Indicador visual si está autenticado */}
-                {user && !authLoading && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full border border-black"></span>
-                )}
               </button>
             </div>
           )}

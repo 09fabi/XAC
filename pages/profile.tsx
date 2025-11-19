@@ -1,47 +1,31 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { useAuth } from '@/context/AuthContext'
-import { useAlert } from '@/context/AlertContext'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import ProtectedRoute from '@/components/ProtectedRoute'
 
-function ProfilePageContent() {
+export default function ProfilePage() {
   const router = useRouter()
-  const { user, profile, signOut } = useAuth()
-  const { showSuccess } = useAlert()
   const [signingOut, setSigningOut] = useState(false)
 
-  // Manejar cerrar sesión
+  // Manejar cerrar sesión (solo UI, sin funcionalidad)
   const handleSignOut = async () => {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
       setSigningOut(true)
-      try {
-        await signOut()
-        showSuccess('Sesión cerrada correctamente')
-        router.push('/')
-      } catch (error) {
-        console.error('Error signing out:', error)
-      } finally {
+      // TODO: Implementar logout
+      console.log('Logout')
+      setTimeout(() => {
         setSigningOut(false)
-      }
+        router.push('/')
+      }, 1000)
     }
   }
 
-  // Formatear fecha
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
-  const userName = profile?.name || user?.user_metadata?.name || user?.user_metadata?.full_name || 'Usuario'
-  const userEmail = profile?.email || user?.email || 'N/A'
+  // Datos de ejemplo para el diseño
+  const userName = 'Usuario Ejemplo'
+  const userEmail = 'usuario@email.com'
+  const memberSince = '1 de enero de 2024'
+  const authMethod = 'Email y Contraseña'
 
   return (
     <>
@@ -84,9 +68,7 @@ function ProfilePageContent() {
                 <label className="block text-sm font-medium uppercase tracking-wider mb-2 text-gray-400">
                   Miembro desde
                 </label>
-                <p className="text-xl font-semibold">
-                  {formatDate(profile?.created_at || user?.created_at)}
-                </p>
+                <p className="text-xl font-semibold">{memberSince}</p>
               </div>
 
               {/* Método de autenticación */}
@@ -94,9 +76,7 @@ function ProfilePageContent() {
                 <label className="block text-sm font-medium uppercase tracking-wider mb-2 text-gray-400">
                   Método de autenticación
                 </label>
-                <p className="text-xl font-semibold">
-                  {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email y Contraseña'}
-                </p>
+                <p className="text-xl font-semibold">{authMethod}</p>
               </div>
             </div>
           </div>
@@ -128,12 +108,3 @@ function ProfilePageContent() {
     </>
   )
 }
-
-export default function ProfilePage() {
-  return (
-    <ProtectedRoute>
-      <ProfilePageContent />
-    </ProtectedRoute>
-  )
-}
-

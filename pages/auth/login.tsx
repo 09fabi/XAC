@@ -1,10 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useAuth } from '@/context/AuthContext'
-import { useAlert } from '@/context/AlertContext'
-import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
@@ -12,9 +9,6 @@ type TabType = 'login' | 'register'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { user, signIn, signUp, signInWithGoogle, loading: authLoading } = useAuth()
-  const { showError, showSuccess } = useAlert()
-  
   const [activeTab, setActiveTab] = useState<TabType>('login')
   const [formLoading, setFormLoading] = useState(false)
   const [email, setEmail] = useState('')
@@ -25,14 +19,6 @@ export default function LoginPage() {
     password?: string
     name?: string
   }>({})
-
-  // Redirigir si ya está autenticado
-  useEffect(() => {
-    if (user && !authLoading) {
-      const redirectTo = router.query.redirect as string || '/'
-      router.push(redirectTo)
-    }
-  }, [user, authLoading, router])
 
   // Validación de email
   const validateEmail = (email: string): boolean => {
@@ -64,7 +50,7 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Manejar login
+  // Manejar login (solo UI, sin funcionalidad)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -75,33 +61,15 @@ export default function LoginPage() {
     setFormLoading(true)
     setErrors({})
 
-    try {
-      const { error } = await signIn(email, password)
-
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          setErrors({ password: 'Email o contraseña incorrectos' })
-        } else if (error.message.includes('Email not confirmed')) {
-          showError('Por favor, verifica tu email antes de iniciar sesión')
-        } else {
-          showError(error.message || 'Error al iniciar sesión')
-        }
-        return
-      }
-
-      // Éxito - el useEffect redirigirá
-      showSuccess(`¡Bienvenido de nuevo!`)
-      const redirectTo = router.query.redirect as string || '/'
-      router.push(redirectTo)
-    } catch (error) {
-      showError('Error inesperado al iniciar sesión')
-      console.error('Login error:', error)
-    } finally {
+    // Simular carga
+    setTimeout(() => {
       setFormLoading(false)
-    }
+      // TODO: Implementar login
+      console.log('Login:', { email, password })
+    }, 1000)
   }
 
-  // Manejar registro
+  // Manejar registro (solo UI, sin funcionalidad)
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -112,69 +80,22 @@ export default function LoginPage() {
     setFormLoading(true)
     setErrors({})
 
-    try {
-      const result = await signUp(email, password, name)
-
-      if (result.error) {
-        if (result.error.message.includes('User already registered')) {
-          setErrors({ email: 'Este email ya está registrado' })
-        } else if (result.error.message.includes('Password')) {
-          setErrors({ password: result.error.message })
-        } else {
-          showError(result.error.message || 'Error al registrarse')
-        }
-        setFormLoading(false)
-        return
-      }
-
-      // Si hay sesión en el resultado, el usuario está autenticado
-      if (result.session) {
-        // Esperar un momento para que el AuthContext se actualice
-        await new Promise(resolve => setTimeout(resolve, 500))
-        showSuccess(`¡Bienvenido a XAC, ${name}!`)
-        const redirectTo = router.query.redirect as string || '/'
-        router.push(redirectTo)
-      } else {
-        // No hay sesión - puede requerir confirmación de email
-        // Esperar un momento y verificar de nuevo por si acaso
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session) {
-          showSuccess(`¡Bienvenido a XAC, ${name}!`)
-          const redirectTo = router.query.redirect as string || '/'
-          router.push(redirectTo)
-        } else {
-          showSuccess('¡Registro exitoso! Por favor, verifica tu email para activar tu cuenta.')
-          router.push('/auth/login')
-        }
-      }
-    } catch (error) {
-      showError('Error inesperado al registrarse')
-      console.error('Register error:', error)
-    } finally {
+    // Simular carga
+    setTimeout(() => {
       setFormLoading(false)
-    }
+      // TODO: Implementar registro
+      console.log('Register:', { email, password, name })
+    }, 1000)
   }
 
-  // Manejar login con Google
+  // Manejar login con Google (solo UI, sin funcionalidad)
   const handleGoogleLogin = async () => {
-    try {
-      await signInWithGoogle()
-      // La redirección se manejará en el callback
-    } catch (error) {
-      showError('Error al iniciar sesión con Google')
-      console.error('Google login error:', error)
-    }
-  }
-
-  // Si está cargando o ya autenticado, mostrar loading
-  if (authLoading || user) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-lg">Cargando...</div>
-      </div>
-    )
+    setFormLoading(true)
+    // TODO: Implementar Google OAuth
+    console.log('Google login')
+    setTimeout(() => {
+      setFormLoading(false)
+    }, 1000)
   }
 
   return (
@@ -361,7 +282,7 @@ export default function LoginPage() {
             {/* Botón de Google */}
             <button
               onClick={handleGoogleLogin}
-              disabled={formLoading || authLoading}
+              disabled={formLoading}
               className="w-full bg-transparent border-2 border-white text-white px-6 py-4 font-semibold uppercase tracking-wider hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -402,4 +323,3 @@ export default function LoginPage() {
     </>
   )
 }
-
