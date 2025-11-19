@@ -13,7 +13,7 @@ export default function ProtectedRoute({ children, redirectTo = '/auth/login' }:
   const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
-    // Timeout de seguridad
+    // Timeout de seguridad más corto
     const timeoutId = setTimeout(() => {
       if (!user && !loading && !redirecting) {
         console.warn('ProtectedRoute: Timeout reached, redirecting to login')
@@ -21,7 +21,7 @@ export default function ProtectedRoute({ children, redirectTo = '/auth/login' }:
         const currentPath = router.asPath
         router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`)
       }
-    }, 12000) // 12 segundos máximo
+    }, 5000) // 5 segundos máximo
 
     if (!loading && !user && !redirecting) {
       // Guardar la URL actual para redirigir después del login

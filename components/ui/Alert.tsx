@@ -11,14 +11,13 @@ interface AlertProps {
 
 const Alert: React.FC<AlertProps> = ({ type, message, onClose, duration = 5000 }) => {
   useEffect(() => {
-    console.log('Alert component mounted:', { type, message })
     if (duration > 0) {
       const timer = setTimeout(() => {
         onClose()
       }, duration)
       return () => clearTimeout(timer)
     }
-  }, [duration, onClose, type, message])
+  }, [duration, onClose])
 
   const getAlertStyles = () => {
     return 'border-2 border-black bg-white text-black rounded-none'
@@ -54,8 +53,6 @@ const Alert: React.FC<AlertProps> = ({ type, message, onClose, duration = 5000 }
         return null
     }
   }
-
-  console.log('Rendering Alert:', { type, message })
 
   return (
     <div

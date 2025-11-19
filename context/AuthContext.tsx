@@ -95,15 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     let mounted = true
     let timeoutId: NodeJS.Timeout
 
-    // Timeout de seguridad para evitar loading infinito
-    timeoutId = setTimeout(() => {
-      if (mounted) {
-        console.warn('Auth initialization timeout - setting loading to false')
-        setLoading(false)
-      }
-    }, 10000) // 10 segundos máximo
-
-    // Obtener sesión inicial
+    // Obtener sesión inicial (rápido, sin esperar perfil)
     const getInitialSession = async () => {
       try {
         // Verificar que estamos en el cliente
@@ -118,51 +110,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (error) {
           console.error('Error getting session:', error)
-          clearTimeout(timeoutId)
           setLoading(false)
           return
         }
 
         if (session) {
+          // Establecer sesión y usuario inmediatamente (sin esperar perfil)
           setSession(session)
           setUser(session.user)
+          setLoading(false) // Marcar como no loading inmediatamente
           
-          // Obtener perfil del usuario (con timeout)
-          try {
-            const userProfile = await Promise.race([
-              fetchUserProfile(session.user.id),
-              new Promise<UserProfile | null>((resolve) => 
-                setTimeout(() => resolve(null), 5000)
-              )
-            ])
-            
-            if (userProfile) {
-              setProfile(userProfile)
-            } else {
-              // Si no existe perfil, crearlo
-              await createOrUpdateProfile(session.user)
-            }
-          } catch (profileError) {
-            console.error('Error fetching/creating profile:', profileError)
-            // Continuar aunque falle el perfil
-          }
+          // Obtener perfil en segundo plano (sin bloquear)
+          fetchUserProfile(session.user.id)
+            .then((userProfile) => {
+              if (!mounted) return
+              
+              if (userProfile) {
+                setProfile(userProfile)
+              } else {
+                // Si no existe perfil, crearlo en segundo plano
+                createOrUpdateProfile(session.user).catch((err) => {
+                  console.error('Error creating profile:', err)
+                })
+              }
+            })
+            .catch((profileError) => {
+              console.error('Error fetching profile:', profileError)
+              // Intentar crear perfil si falla la obtención
+              if (mounted) {
+                createOrUpdateProfile(session.user).catch((err) => {
+                  console.error('Error creating profile after fetch failed:', err)
+                })
+              }
+            })
         } else {
           setSession(null)
           setUser(null)
           setProfile(null)
+          setLoading(false)
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error)
         if (mounted) {
           setLoading(false)
         }
-      } finally {
-        if (mounted) {
-          clearTimeout(timeoutId)
-          setLoading(false)
-        }
       }
     }
+
+    // Timeout de seguridad más corto (3 segundos)
+    timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth initialization timeout - setting loading to false')
+        setLoading(false)
+      }
+    }, 3000) // 3 segundos máximo
 
     getInitialSession()
 
@@ -173,33 +174,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         console.log('Auth state changed:', event, session?.user?.email)
         
+        // Actualizar sesión y usuario inmediatamente
         setSession(session)
         setUser(session?.user ?? null)
+        setLoading(false) // Marcar como no loading inmediatamente
 
         if (session?.user) {
-          // Obtener o crear perfil (con manejo de errores)
-          try {
-            const userProfile = await Promise.race([
-              fetchUserProfile(session.user.id),
-              new Promise<UserProfile | null>((resolve) => 
-                setTimeout(() => resolve(null), 5000)
-              )
-            ])
-            
-            if (userProfile) {
-              setProfile(userProfile)
-            } else {
-              await createOrUpdateProfile(session.user)
-            }
-          } catch (profileError) {
-            console.error('Error in auth state change profile:', profileError)
-            // Continuar aunque falle
-          }
+          // Obtener o crear perfil en segundo plano (sin bloquear)
+          fetchUserProfile(session.user.id)
+            .then((userProfile) => {
+              if (!mounted) return
+              
+              if (userProfile) {
+                setProfile(userProfile)
+              } else {
+                createOrUpdateProfile(session.user).catch((err) => {
+                  console.error('Error creating profile:', err)
+                })
+              }
+            })
+            .catch((profileError) => {
+              console.error('Error in auth state change profile:', profileError)
+              // Intentar crear perfil si falla
+              if (mounted) {
+                createOrUpdateProfile(session.user).catch((err) => {
+                  console.error('Error creating profile after fetch failed:', err)
+                })
+              }
+            })
         } else {
           setProfile(null)
         }
-
-        setLoading(false)
       }
     )
 
@@ -279,20 +284,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Función de logout
   const signOut = async () => {
     try {
-      setLoading(true)
-      const { error } = await supabase.auth.signOut()
+      // Limpiar estado inmediatamente para mejor UX
+      setUser(null)
+      setProfile(null)
+      setSession(null)
       
-      if (error) {
+      // Hacer signOut en segundo plano
+      supabase.auth.signOut().catch((error) => {
         console.error('Error signing out:', error)
-      } else {
-        setUser(null)
-        setProfile(null)
-        setSession(null)
-      }
+      })
     } catch (error) {
       console.error('Error in signOut:', error)
-    } finally {
-      setLoading(false)
     }
   }
 

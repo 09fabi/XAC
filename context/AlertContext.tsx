@@ -44,11 +44,8 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({ children }) => {
 
   const showAlert = (type: AlertType, message: string, duration: number = 5000) => {
     const id = Math.random().toString(36).substring(2, 9)
-    console.log('Showing alert:', { type, message, id })
     setAlerts((prev) => {
-      const newAlerts = [...prev, { id, type, message, duration }]
-      console.log('Alerts state:', newAlerts)
-      return newAlerts
+      return [...prev, { id, type, message, duration }]
     })
   }
 
@@ -67,8 +64,6 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({ children }) => {
   const showInfo = (message: string, duration?: number) => {
     showAlert('info', message, duration)
   }
-
-  console.log('AlertProvider render - alerts count:', alerts.length)
 
   return (
     <AlertContext.Provider value={{ showAlert, showSuccess, showError, showWarning, showInfo }}>
