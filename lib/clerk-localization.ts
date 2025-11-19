@@ -13,38 +13,14 @@ export const customESLocalization = {
   formFieldInputPlaceholder__password: "",
   formFieldHintText__optional: "",
   signIn: {
-    ...(esES.signIn || {}),
+    ...esES.signIn,
     title: "Iniciar sesión",
     subtitle: "",
-    emailAddress: {
-      ...(esES.signIn?.emailAddress || {}),
-      placeholder: "",
-    },
-    password: {
-      ...(esES.signIn?.password || {}),
-      placeholder: "",
-    },
   },
   signUp: {
-    ...(esES.signUp || {}),
+    ...esES.signUp,
     title: "Crear cuenta",
     subtitle: "",
-    firstName: {
-      ...(esES.signUp?.firstName || {}),
-      placeholder: "",
-    },
-    lastName: {
-      ...(esES.signUp?.lastName || {}),
-      placeholder: "",
-    },
-    emailAddress: {
-      ...(esES.signUp?.emailAddress || {}),
-      placeholder: "",
-    },
-    password: {
-      ...(esES.signUp?.password || {}),
-      placeholder: "",
-    },
   },
-};
+} as typeof esES;
 
