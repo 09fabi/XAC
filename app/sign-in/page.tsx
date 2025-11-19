@@ -20,7 +20,6 @@ export default function Page() {
           afterSignInUrl="/"
           fallbackRedirectUrl="/"
           appearance={{
-            locale: "es-ES",
             elements: {
               rootBox: "mx-auto",
               card: "bg-black border-2 border-white shadow-none",
