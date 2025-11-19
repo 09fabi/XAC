@@ -16,9 +16,10 @@ interface Order {
 
 export default function Profile() {
   const router = useRouter()
-  const { user: authUser, loading: authLoading, isEmailVerified } = useAuth()
+  const { user: authUser, loading: authLoading, isEmailVerified, signOut } = useAuth()
   const [user, setUser] = useState<{ name: string; email: string } | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   useEffect(() => {
     // Si no hay usuario autenticado, redirigir al login
@@ -117,6 +118,17 @@ export default function Profile() {
     })
   }
 
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true)
+      await signOut()
+      router.push('/auth/login')
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error)
+      setIsSigningOut(false)
+    }
+  }
+
   return (
     <>
       <Head>
@@ -165,9 +177,18 @@ export default function Profile() {
                       </button>
                     </div>
                   )}
-                  <button className="btn-secondary mt-4">
-                    Editar Perfil
-                  </button>
+                  <div className="mt-4 flex gap-3">
+                    <button className="btn-secondary">
+                      Editar Perfil
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      disabled={isSigningOut}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSigningOut ? 'Cerrando sesión...' : 'Cerrar Sesión'}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <p className="text-gray-600">No se pudo cargar la información</p>
