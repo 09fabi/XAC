@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useAuth } from '@/context/AuthContext'
 
 interface NavbarProps {
   textColor?: 'white' | 'black'
@@ -9,7 +8,6 @@ interface NavbarProps {
 
 const Navbar = ({ textColor = 'white', borderColor = 'white' }: NavbarProps) => {
   const router = useRouter()
-  const { user, signOut, loading } = useAuth()
 
   const navItems = [
     { href: '/', label: 'Inicio' },
@@ -20,14 +18,6 @@ const Navbar = ({ textColor = 'white', borderColor = 'white' }: NavbarProps) => 
   const textColorClass = textColor === 'black' ? 'text-black' : 'text-white'
   const borderColorClass = borderColor === 'black' ? 'border-black' : 'border-white'
   const hoverBorderClass = borderColor === 'black' ? 'hover:border-black' : 'hover:border-white'
-
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-    } catch (error) {
-      console.error('Error signing out:', error)
-    }
-  }
 
   return (
     <nav className="bg-transparent" style={{ borderBottom: 'none' }}>
@@ -48,40 +38,6 @@ const Navbar = ({ textColor = 'white', borderColor = 'white' }: NavbarProps) => 
                 {item.label}
               </Link>
             ))}
-          </div>
-
-          {/* Botones de autenticación a la derecha */}
-          <div className="flex items-center space-x-4">
-            {loading ? (
-              // Mostrar algo mientras carga, o simplemente no mostrar nada
-              <div className="w-20 h-6"></div> // Espacio reservado
-            ) : (
-              <>
-                {user ? (
-                  <>
-                    <Link
-                      href="/profile"
-                      className={`px-3 py-1.5 text-sm font-medium ${textColorClass} hover:opacity-80 transition-opacity`}
-                    >
-                      Perfil
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className={`px-3 py-1.5 text-sm font-medium ${textColorClass} hover:opacity-80 transition-opacity`}
-                    >
-                      Salir
-                    </button>
-                  </>
-                ) : (
-                  <Link
-                    href="/auth/login"
-                    className={`px-3 py-1.5 text-sm font-medium ${textColorClass} hover:opacity-80 transition-opacity`}
-                  >
-                    Iniciar Sesión
-                  </Link>
-                )}
-              </>
-            )}
           </div>
         </div>
       </div>

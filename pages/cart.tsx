@@ -45,7 +45,7 @@ export default function Cart() {
         clearCart()
         router.replace('/cart', undefined, { shallow: true }) // Limpiar query params
         setTimeout(() => {
-          router.push('/profile')
+          router.push('/')
         }, 2000)
       }, 2000)
     } else if (payment === 'error') {
@@ -149,7 +149,7 @@ export default function Cart() {
           
           showSuccess('Pago simulado exitoso. En producción, serías redirigido a Flow.')
           clearCart()
-          router.push('/profile')
+          router.push('/')
         }
       } else {
         const errorMessage = data.message || data.error || 'Error al procesar el pago'
