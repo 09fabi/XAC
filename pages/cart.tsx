@@ -5,14 +5,31 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import CartItem from '@/components/CartItem'
 import { useCart } from '@/context/CartContext'
+import { useAlert } from '@/context/AlertContext'
 
 export default function Cart() {
   const router = useRouter()
-  const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart()
+  const { cart, removeFromCart: removeFromCartOriginal, updateQuantity, clearCart: clearCartOriginal, getTotalPrice } = useCart()
+  const { showError, showSuccess, showWarning, showInfo } = useAlert()
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<'success' | 'error' | null>(null)
   const [userEmail, setUserEmail] = useState('')
   const [emailError, setEmailError] = useState('')
+
+  // Wrapper para mostrar alert al eliminar producto
+  const removeFromCart = (productId: string) => {
+    const item = cart.find(item => item.id === productId)
+    removeFromCartOriginal(productId)
+    if (item) {
+      showInfo(`${item.name} eliminado del carrito`)
+    }
+  }
+
+  // Wrapper para mostrar alert al vaciar carrito
+  const clearCart = () => {
+    clearCartOriginal()
+    showInfo('Carrito vaciado')
+  }
 
   // Manejar retorno de Flow
   useEffect(() => {
@@ -53,7 +70,7 @@ export default function Cart() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) {
-      alert('Tu carrito está vacío')
+      showWarning('Tu carrito está vacío')
       return
     }
 
@@ -130,18 +147,18 @@ export default function Cart() {
             console.error('Error al guardar orden:', error)
           }
           
-          alert('Pago simulado exitoso. En producción, serías redirigido a Flow.')
+          showSuccess('Pago simulado exitoso. En producción, serías redirigido a Flow.')
           clearCart()
           router.push('/profile')
         }
       } else {
         const errorMessage = data.message || data.error || 'Error al procesar el pago'
-        alert(`Error: ${errorMessage}. Por favor, intenta nuevamente.`)
+        showError(`${errorMessage}. Por favor, intenta nuevamente.`)
         setPaymentStatus('error')
       }
     } catch (error: any) {
       console.error('Error during checkout:', error)
-      alert('Error al procesar el pago. Por favor, intenta nuevamente.')
+      showError('Error al procesar el pago. Por favor, intenta nuevamente.')
       setPaymentStatus('error')
     } finally {
       setIsProcessing(false)

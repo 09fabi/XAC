@@ -1,13 +1,17 @@
 import type { AppProps } from 'next/app'
 import { CartProvider } from '@/context/CartContext'
-import TopBanner from '@/components/TopBanner'
+import { AlertProvider } from '@/context/AlertContext'
+import PageTransition from '@/components/PageTransition'
 import '@/styles/globals.css'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <CartProvider>
-      <TopBanner />
-      <Component {...pageProps} />
+      <AlertProvider>
+        <PageTransition>
+          <Component {...pageProps} />
+        </PageTransition>
+      </AlertProvider>
     </CartProvider>
   )
 }

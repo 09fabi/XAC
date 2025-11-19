@@ -1,16 +1,18 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useCart } from '@/context/CartContext'
 import { Product } from '@/context/CartContext'
+import { useAlert } from '@/context/AlertContext'
 
 export default function ProductDetail() {
   const router = useRouter()
   const { id } = router.query
-  const { addToCart } = useCart()
+  const { addToCart, getTotalItems } = useCart()
+  const { showSuccess, showWarning } = useAlert()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
@@ -67,12 +69,12 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (product) {
       if (!selectedSize) {
-        alert('Por favor selecciona una talla')
+        showWarning('Por favor selecciona una talla')
         return
       }
       const productWithSize = { ...product, selectedSize }
       addToCart(productWithSize, quantity)
-      alert('Producto agregado al carrito')
+      showSuccess('Producto agregado al carrito')
     }
   }
 
@@ -86,11 +88,86 @@ export default function ProductDetail() {
   if (loading) {
     return (
       <>
-        <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <p className="text-gray-600">Cargando producto...</p>
+        <Head>
+          <title>XAC</title>
+        </Head>
+        <div className="min-h-screen flex flex-col bg-white">
+          <div className="relative w-full bg-white pt-4 pb-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="relative flex items-center justify-center py-2">
+                <button className="absolute left-0 p-2 text-black hover:opacity-70 transition-opacity duration-150">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                    />
+                  </svg>
+                </button>
+                <div className="flex-1 flex justify-center">
+                  <Link href="/">
+                    <div className="text-black font-black tracking-tight uppercase cursor-pointer hover:opacity-70 transition-opacity duration-150" style={{ fontSize: 'clamp(3rem, 6vw, 3.5rem)' }}>
+                      XAC
+                    </div>
+                  </Link>
+                </div>
+                <div className="absolute right-0 flex items-center space-x-2">
+                  <Link
+                    href="/profile"
+                    className="p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                      />
+                    </svg>
+                  </Link>
+                  <Link
+                    href="/cart"
+                    className="relative p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                      />
+                    </svg>
+                    {getTotalItems() > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">
+                        {getTotalItems()}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="min-h-screen flex items-center justify-center">
+            <p className="text-gray-600">Cargando producto...</p>
+          </div>
+          <Footer />
         </div>
-        <Footer />
       </>
     )
   }
@@ -98,19 +175,94 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <>
-        <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-gray-600 mb-4">Producto no encontrado</p>
-            <button
-              onClick={() => router.push('/store')}
-              className="btn-primary"
-            >
-              Volver a la Tienda
-            </button>
+        <Head>
+          <title>XAC</title>
+        </Head>
+        <div className="min-h-screen flex flex-col bg-white">
+          <div className="relative w-full bg-white pt-4 pb-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="relative flex items-center justify-center py-2">
+                <button className="absolute left-0 p-2 text-black hover:opacity-70 transition-opacity duration-150">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                    />
+                  </svg>
+                </button>
+                <div className="flex-1 flex justify-center">
+                  <Link href="/">
+                    <div className="text-black font-black tracking-tight uppercase cursor-pointer hover:opacity-70 transition-opacity duration-150" style={{ fontSize: 'clamp(3rem, 6vw, 3.5rem)' }}>
+                      XAC
+                    </div>
+                  </Link>
+                </div>
+                <div className="absolute right-0 flex items-center space-x-2">
+                  <Link
+                    href="/profile"
+                    className="p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                      />
+                    </svg>
+                  </Link>
+                  <Link
+                    href="/cart"
+                    className="relative p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                      />
+                    </svg>
+                    {getTotalItems() > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">
+                        {getTotalItems()}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">Producto no encontrado</p>
+              <button
+                onClick={() => router.push('/store')}
+                className="btn-primary"
+              >
+                Volver a la Tienda
+              </button>
+            </div>
+          </div>
+          <Footer />
         </div>
-        <Footer />
       </>
     )
   }
@@ -122,8 +274,85 @@ export default function ProductDetail() {
         <meta name="description" content={product.description || product.name} />
       </Head>
 
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
+      <div className="min-h-screen flex flex-col bg-white">
+        {/* Header con título XAC y botones */}
+        <div className="relative w-full bg-white pt-4 pb-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Título XAC con botones de búsqueda, usuario y carrito */}
+            <div className="relative flex items-center justify-center py-2">
+              {/* Botón de búsqueda a la izquierda */}
+              <button className="absolute left-0 p-2 text-black hover:opacity-70 transition-opacity duration-150">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+              </button>
+
+              {/* Título XAC centrado */}
+              <div className="flex-1 flex justify-center">
+                <Link href="/">
+                  <div className="text-black font-black tracking-tight uppercase cursor-pointer hover:opacity-70 transition-opacity duration-150" style={{ fontSize: 'clamp(3rem, 6vw, 3.5rem)' }}>
+                    XAC
+                  </div>
+                </Link>
+              </div>
+
+              {/* Botones de usuario y carrito a la derecha */}
+              <div className="absolute right-0 flex items-center space-x-2">
+                <Link
+                  href="/profile"
+                  className="p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                    />
+                  </svg>
+                </Link>
+                <Link
+                  href="/cart"
+                  className="relative p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                    />
+                  </svg>
+                  {getTotalItems() > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">
+                      {getTotalItems()}
+                    </span>
+                  )}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <main className="flex-grow py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -228,4 +457,3 @@ export default function ProductDetail() {
     </>
   )
 }
-
