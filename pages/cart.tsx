@@ -175,9 +175,9 @@ export default function Cart() {
       <div className="min-h-screen flex flex-col">
         <Navbar />
 
-        <main className="flex-grow py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl md:text-5xl font-black mb-12 uppercase tracking-tight">Carrito</h1>
+        <main className="flex-grow py-6 sm:py-8 md:py-12">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-6 sm:mb-8 md:mb-12 uppercase tracking-tight">Carrito</h1>
 
             {/* Mensajes de estado de pago */}
             {paymentStatus === 'success' && (
@@ -222,9 +222,9 @@ export default function Cart() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                 {/* Lista de productos */}
-                <div className="lg:col-span-2 space-y-4">
+                <div className="lg:col-span-2 space-y-3 sm:space-y-4">
                   {cart.map((item) => (
                     <CartItem
                       key={item.id}
@@ -234,10 +234,10 @@ export default function Cart() {
                     />
                   ))}
 
-                  <div className="flex justify-end mt-6">
+                  <div className="flex justify-end mt-4 sm:mt-6">
                     <button
                       onClick={clearCart}
-                      className="text-sm text-gray-600 hover:text-black uppercase tracking-wide font-medium border-b-2 border-transparent hover:border-black transition-all duration-300"
+                      className="text-xs sm:text-sm text-gray-600 hover:text-black uppercase tracking-wide font-medium border-b-2 border-transparent hover:border-black transition-all duration-300"
                     >
                       Vaciar Carrito
                     </button>
@@ -246,27 +246,27 @@ export default function Cart() {
 
                 {/* Resumen */}
                 <div className="lg:col-span-1">
-                  <div className="bg-white p-8 border-2 border-black sticky top-24">
-                    <h2 className="text-xl font-bold mb-6 uppercase tracking-wide">Resumen</h2>
-                    <div className="space-y-4 mb-6">
+                  <div className="bg-white p-4 sm:p-6 md:p-8 border-2 border-black lg:sticky lg:top-24">
+                    <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 uppercase tracking-wide">Resumen</h2>
+                    <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                       <div className="flex justify-between border-b border-gray-200 pb-2">
-                        <span className="text-sm text-gray-600 uppercase tracking-wide">Subtotal:</span>
-                        <span className="font-bold">{formatPrice(getTotalPrice())}</span>
+                        <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">Subtotal:</span>
+                        <span className="font-bold text-sm sm:text-base">{formatPrice(getTotalPrice())}</span>
                       </div>
                       <div className="flex justify-between border-b border-gray-200 pb-2">
-                        <span className="text-sm text-gray-600 uppercase tracking-wide">Envío:</span>
-                        <span className="font-bold">Gratis</span>
+                        <span className="text-xs sm:text-sm text-gray-600 uppercase tracking-wide">Envío:</span>
+                        <span className="font-bold text-sm sm:text-base">Gratis</span>
                       </div>
-                      <div className="border-t-2 border-black pt-4">
-                        <div className="flex justify-between text-lg font-black">
+                      <div className="border-t-2 border-black pt-3 sm:pt-4">
+                        <div className="flex justify-between text-base sm:text-lg font-black">
                           <span className="uppercase tracking-wide">Total:</span>
                           <span className="text-black">{formatPrice(getTotalPrice())}</span>
                         </div>
                       </div>
                     </div>
                     {/* Campo de email */}
-                    <div className="mb-4">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2 uppercase tracking-wide">
+                    <div className="mb-3 sm:mb-4">
+                      <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 uppercase tracking-wide">
                         Email
                       </label>
                       <input
@@ -278,19 +278,19 @@ export default function Cart() {
                           setEmailError('')
                         }}
                         placeholder="tu@email.com"
-                        className={`w-full px-4 py-3 border-2 ${
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 ${
                           emailError ? 'border-red-500' : 'border-black'
                         } focus:outline-none focus:ring-2 focus:ring-black transition-all`}
                         disabled={isProcessing}
                       />
                       {emailError && (
-                        <p className="mt-1 text-sm text-red-600">{emailError}</p>
+                        <p className="mt-1 text-xs sm:text-sm text-red-600">{emailError}</p>
                       )}
                     </div>
                     <button
                       onClick={handleCheckout}
                       disabled={isProcessing}
-                      className={`w-full btn-primary py-4 text-sm mb-3 ${
+                      className={`w-full btn-primary py-3 sm:py-4 text-xs sm:text-sm mb-2 sm:mb-3 ${
                         isProcessing ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
@@ -298,7 +298,7 @@ export default function Cart() {
                     </button>
                     <button
                       onClick={() => router.push('/store')}
-                      className="w-full btn-secondary py-4 text-sm"
+                      className="w-full btn-secondary py-3 sm:py-4 text-xs sm:text-sm"
                     >
                       Seguir Comprando
                     </button>

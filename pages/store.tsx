@@ -189,14 +189,14 @@ export default function Store() {
 
       <div className="min-h-screen flex flex-col bg-white">
         {/* Header con título XAC y botones */}
-        <div className="relative w-full bg-white pt-4 pb-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full bg-white pt-3 sm:pt-4 pb-3 sm:pb-4">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
             {/* Título XAC con botones de búsqueda, usuario y carrito */}
             <div className="relative flex items-center justify-center py-2">
               {/* Botón de búsqueda a la izquierda */}
-              <button className="absolute left-0 p-2 text-black hover:opacity-70 transition-opacity duration-150">
+              <button className="absolute left-0 p-1.5 sm:p-2 text-black hover:opacity-70 transition-opacity duration-150">
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5 sm:w-6 sm:h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -213,20 +213,20 @@ export default function Store() {
               {/* Título XAC centrado */}
               <div className="flex-1 flex justify-center">
                 <Link href="/">
-                  <div className="text-black font-black tracking-tight uppercase cursor-pointer hover:opacity-70 transition-opacity duration-150" style={{ fontSize: 'clamp(3rem, 6vw, 3.5rem)' }}>
+                  <div className="text-black font-black tracking-tight uppercase cursor-pointer hover:opacity-70 transition-opacity duration-150" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
                     XAC
                   </div>
                 </Link>
               </div>
 
               {/* Botón de carrito a la derecha */}
-              <div className="absolute right-0 flex items-center space-x-2">
+              <div className="absolute right-0 flex items-center space-x-1.5 sm:space-x-2">
                 <Link
                   href="/cart"
-                  className="relative p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                  className="relative p-1.5 sm:p-2 text-black hover:opacity-70 transition-opacity duration-150"
                 >
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -239,7 +239,7 @@ export default function Store() {
                     />
                   </svg>
                   {getTotalItems() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">
+                    <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-black text-white text-[9px] sm:text-[10px] font-medium w-3.5 h-3.5 sm:w-4 sm:h-4 flex items-center justify-center rounded-full">
                       {getTotalItems()}
                     </span>
                   )}
@@ -249,20 +249,20 @@ export default function Store() {
           </div>
           
           {/* Navbar centrado debajo del título */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 mt-2">
             <Navbar textColor="black" borderColor="black" />
           </div>
         </div>
 
-        <main className="flex-grow py-12 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:pl-0 lg:pr-8">
-            <div className="flex flex-col lg:flex-row gap-8">
+        <main className="flex-grow py-6 sm:py-8 md:py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 lg:pl-0 lg:pr-8">
+            <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
               {/* Barra lateral izquierda con filtros */}
               <aside className="w-full lg:w-64 flex-shrink-0 lg:-ml-4">
-                <div className="sticky top-4 space-y-8">
+                <div className="lg:sticky lg:top-4 space-y-6 sm:space-y-8">
                   {/* Título Recién llegado */}
                   <div>
-                    <h2 className="text-xl font-semibold uppercase tracking-wide text-black mb-6">
+                    <h2 className="text-lg sm:text-xl font-semibold uppercase tracking-wide text-black mb-4 sm:mb-6">
                       Recién llegado
                     </h2>
                   </div>
@@ -421,7 +421,7 @@ export default function Store() {
                     <p className="text-gray-600">No se encontraron productos con los filtros seleccionados.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {filteredProducts.map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}

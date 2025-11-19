@@ -133,17 +133,17 @@ export default function Recommendations() {
       <div className="min-h-screen flex flex-col">
         <Navbar />
 
-        <main className="flex-grow py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold mb-8">Recomendaciones para Ti</h1>
+        <main className="flex-grow py-6 sm:py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Recomendaciones para Ti</h1>
 
             {/* Selector de tipo de recomendación */}
-            <div className="mb-8">
-              <p className="text-gray-600 mb-4">Filtrar por:</p>
+            <div className="mb-6 sm:mb-8">
+              <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">Filtrar por:</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setRecommendationType('category')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition-colors ${
                     recommendationType === 'category'
                       ? 'bg-primary-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -153,7 +153,7 @@ export default function Recommendations() {
                 </button>
                 <button
                   onClick={() => setRecommendationType('color')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition-colors ${
                     recommendationType === 'color'
                       ? 'bg-primary-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -163,7 +163,7 @@ export default function Recommendations() {
                 </button>
                 <button
                   onClick={() => setRecommendationType('similar')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition-colors ${
                     recommendationType === 'similar'
                       ? 'bg-primary-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -197,7 +197,7 @@ export default function Recommendations() {
                 <p className="text-gray-600 mb-6">
                   Basado en tus preferencias, te recomendamos estos productos:
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {recommendations.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}

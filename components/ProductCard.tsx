@@ -22,7 +22,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <Link href={`/product/${product.id}`}>
       <div className="h-full flex flex-col cursor-pointer group border-2 border-black bg-white transition-all duration-500 hover:shadow-[8px_8px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1">
         {/* Contenedor de imagen con overlay elegante */}
-        <div className="relative w-full h-80 bg-gray-50 overflow-hidden border-b-2 border-black">
+        <div className="relative w-full h-48 sm:h-64 md:h-80 bg-gray-50 overflow-hidden border-b-2 border-black">
           <Image
             src={product.image || '/placeholder-product.jpg'}
             alt={product.name}
@@ -51,15 +51,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
 
         {/* Contenido premium con mejor jerarquía */}
-        <div className="flex flex-col p-8 space-y-5 flex-grow">
+        <div className="flex flex-col p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4 md:space-y-5 flex-grow">
           {/* Nombre del producto */}
-          <h3 className="text-xl font-bold line-clamp-2 tracking-wide text-black uppercase leading-tight group-hover:opacity-90 transition-opacity duration-300">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold line-clamp-2 tracking-wide text-black uppercase leading-tight group-hover:opacity-90 transition-opacity duration-300">
             {product.name}
           </h3>
           
           {/* Precio con separador elegante */}
-          <div className="pt-4 border-t border-black border-opacity-20">
-            <span className="text-lg font-semibold text-black uppercase tracking-wider">
+          <div className="pt-3 sm:pt-4 border-t border-black border-opacity-20">
+            <span className="text-base sm:text-lg font-semibold text-black uppercase tracking-wider">
               {formatPrice(product.price)}
             </span>
           </div>

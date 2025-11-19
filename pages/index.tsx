@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useCart } from '@/context/CartContext'
+import { UserButton, SignedIn, SignedOut } from "@clerk/nextjs"
 
 export default function Home() {
   const { getTotalItems } = useCart()
@@ -38,12 +39,12 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 right-0 h-[10%] bg-black z-0"></div>
             
             {/* Título XAC con botones de búsqueda, usuario y carrito - superpuesto sobre el video */}
-            <div className="absolute top-0 left-0 right-0 z-20 pt-4 pb-0">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="absolute top-0 left-0 right-0 z-20 pt-3 sm:pt-4 pb-0">
+              <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
                 <div className="relative flex items-center">
                   {/* Título XAC centrado */}
                   <div className="flex-1 text-center">
-                    <div className="text-white font-black tracking-tight uppercase" style={{ fontSize: 'clamp(3rem, 6vw, 3.5rem)' }}>
+                    <div className="text-white font-black tracking-tight uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
                       XAC
                     </div>
                   </div>
@@ -51,9 +52,9 @@ export default function Home() {
               </div>
               
               {/* Botón de búsqueda a la izquierda - posicionado respecto a la sección */}
-              <button className="absolute left-12 sm:left-16 lg:left-24 top-1/2 -translate-y-1/2 p-2 text-white hover:opacity-70 transition-opacity duration-150">
+              <button className="absolute left-3 sm:left-4 md:left-8 lg:left-24 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-white hover:opacity-70 transition-opacity duration-150">
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5 sm:w-6 sm:h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -67,14 +68,70 @@ export default function Home() {
                 </svg>
               </button>
 
-              {/* Botón de carrito a la derecha - posicionado respecto a la sección */}
-              <div className="absolute right-12 sm:right-16 lg:right-24 top-1/2 -translate-y-1/2 flex items-center space-x-2">
+              {/* Botones de autenticación y carrito a la derecha - posicionado respecto a la sección */}
+              <div className="absolute right-3 sm:right-4 md:right-8 lg:right-24 top-1/2 -translate-y-1/2 flex items-center space-x-1.5 sm:space-x-2 md:space-x-3">
+                {/* Autenticación: UserButton si está logueado, iconos de sign-in/sign-up si no */}
+                <SignedIn>
+                  <UserButton 
+                    afterSignOutUrl="/" 
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8",
+                      },
+                    }}
+                  />
+                </SignedIn>
+                <SignedOut>
+                  {/* Icono de registrarse (primero) */}
+                  <Link
+                    href="/sign-up"
+                    className="p-1.5 sm:p-2 text-white hover:opacity-70 transition-opacity duration-150"
+                    title="Registrarse"
+                  >
+                    <svg
+                      className="w-5 h-5 sm:w-6 sm:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z"
+                      />
+                    </svg>
+                  </Link>
+
+                  {/* Icono de iniciar sesión (segundo) */}
+                  <Link
+                    href="/sign-in"
+                    className="p-1.5 sm:p-2 text-white hover:opacity-70 transition-opacity duration-150"
+                    title="Iniciar sesión"
+                  >
+                    <svg
+                      className="w-5 h-5 sm:w-6 sm:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                      />
+                    </svg>
+                  </Link>
+                </SignedOut>
+
+                {/* Icono de carrito (tercero) */}
                 <Link
                   href="/cart"
-                  className="relative p-2 text-white hover:opacity-70 transition-opacity duration-150"
+                  className="relative p-1.5 sm:p-2 text-white hover:opacity-70 transition-opacity duration-150"
                 >
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -87,7 +144,7 @@ export default function Home() {
                     />
                   </svg>
                   {getTotalItems() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-white text-black text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">
+                    <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-white text-black text-[9px] sm:text-[10px] font-medium w-3.5 h-3.5 sm:w-4 sm:h-4 flex items-center justify-center rounded-full">
                       {getTotalItems()}
                     </span>
                   )}
@@ -96,26 +153,26 @@ export default function Home() {
             </div>
             
             {/* Navbar superpuesto sobre el video - posicionado justo después del título */}
-            <div className="absolute top-0 left-0 right-0 z-20" style={{ marginTop: 'calc(clamp(3rem, 6vw, 3.5rem) + 3rem)' }}>
+            <div className="absolute top-0 left-0 right-0 z-20" style={{ marginTop: 'calc(clamp(2rem, 5vw, 3.5rem) + 2.5rem)' }}>
               <Navbar />
             </div>
             
             {/* Contenido superpuesto centrado */}
-            <div className="relative h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 z-10">
+            <div className="relative h-full flex flex-col items-center justify-center px-3 sm:px-4 lg:px-8 z-10">
               {/* Texto pequeño arriba */}
-              <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-white mb-3 text-center">
+              <p className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.3em] text-white mb-2 sm:mb-3 text-center">
                 ESTO NO ES RETAIL
               </p>
               
               {/* Texto principal en el centro */}
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white mb-6 tracking-tight text-center">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white mb-4 sm:mb-6 tracking-tight text-center px-2">
                 No vendemos ropa, vendemos actitud
               </h2>
               
               {/* Botón para ir a la tienda */}
               <Link
                 href="/store"
-                className="group relative bg-transparent border-2 border-white text-white px-12 py-4 rounded-none font-semibold tracking-wider uppercase text-sm transition-all duration-500 inline-block mt-4 overflow-hidden"
+                className="group relative bg-transparent border-2 border-white text-white px-8 sm:px-10 md:px-12 py-3 sm:py-4 rounded-none font-semibold tracking-wider uppercase text-xs sm:text-sm transition-all duration-500 inline-block mt-2 sm:mt-4 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
                 <span className="relative z-10 group-hover:text-black transition-colors duration-500">Tienda</span>

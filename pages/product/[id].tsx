@@ -240,14 +240,14 @@ export default function ProductDetail() {
 
       <div className="min-h-screen flex flex-col bg-white">
         {/* Header con título XAC y botones */}
-        <div className="relative w-full bg-white pt-4 pb-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full bg-white pt-3 sm:pt-4 pb-3 sm:pb-4">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
             {/* Título XAC con botones de búsqueda, usuario y carrito */}
             <div className="relative flex items-center justify-center py-2">
               {/* Botón de búsqueda a la izquierda */}
-              <button className="absolute left-0 p-2 text-black hover:opacity-70 transition-opacity duration-150">
+              <button className="absolute left-0 p-1.5 sm:p-2 text-black hover:opacity-70 transition-opacity duration-150">
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5 sm:w-6 sm:h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -264,20 +264,20 @@ export default function ProductDetail() {
               {/* Título XAC centrado */}
               <div className="flex-1 flex justify-center">
                 <Link href="/">
-                  <div className="text-black font-black tracking-tight uppercase cursor-pointer hover:opacity-70 transition-opacity duration-150" style={{ fontSize: 'clamp(3rem, 6vw, 3.5rem)' }}>
+                  <div className="text-black font-black tracking-tight uppercase cursor-pointer hover:opacity-70 transition-opacity duration-150" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
                     XAC
                   </div>
                 </Link>
               </div>
 
               {/* Botón de carrito a la derecha */}
-              <div className="absolute right-0 flex items-center space-x-2">
+              <div className="absolute right-0 flex items-center space-x-1.5 sm:space-x-2">
                 <Link
                   href="/cart"
-                  className="relative p-2 text-black hover:opacity-70 transition-opacity duration-150"
+                  className="relative p-1.5 sm:p-2 text-black hover:opacity-70 transition-opacity duration-150"
                 >
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -290,7 +290,7 @@ export default function ProductDetail() {
                     />
                   </svg>
                   {getTotalItems() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-medium w-4 h-4 flex items-center justify-center rounded-full">
+                    <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-black text-white text-[9px] sm:text-[10px] font-medium w-3.5 h-3.5 sm:w-4 sm:h-4 flex items-center justify-center rounded-full">
                       {getTotalItems()}
                     </span>
                   )}
@@ -300,21 +300,21 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        <main className="flex-grow py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <main className="flex-grow py-6 sm:py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
             <button
               onClick={() => router.back()}
-              className="text-black hover:text-gray-600 mb-8 flex items-center text-sm uppercase tracking-wide"
+              className="text-black hover:text-gray-600 mb-6 sm:mb-8 flex items-center text-xs sm:text-sm uppercase tracking-wide"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
               Volver
             </button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16">
               {/* Imagen */}
-              <div className="relative w-full h-96 lg:h-[600px] bg-gray-100 overflow-hidden border-2 border-black">
+              <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[600px] bg-gray-100 overflow-hidden border-2 border-black">
                 <Image
                   src={product.image || '/placeholder-product.jpg'}
                   alt={product.name}
@@ -326,24 +326,24 @@ export default function ProductDetail() {
 
               {/* Información */}
               <div>
-                <h1 className="text-3xl md:text-4xl font-black mb-4 uppercase tracking-tight">{product.name}</h1>
-                <p className="text-3xl font-black text-black mb-8">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4 uppercase tracking-tight">{product.name}</h1>
+                <p className="text-2xl sm:text-3xl font-black text-black mb-6 sm:mb-8">
                   {formatPrice(product.price)}
                 </p>
 
                 {product.description && (
-                  <p className="text-gray-600 mb-8 text-sm uppercase tracking-wide leading-relaxed">{product.description}</p>
+                  <p className="text-gray-600 mb-6 sm:mb-8 text-xs sm:text-sm uppercase tracking-wide leading-relaxed">{product.description}</p>
                 )}
 
                 {/* Selector de Tallas - Estilo BANG GANG */}
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold mb-4 uppercase tracking-wider">Talla:</label>
+                <div className="mb-6 sm:mb-8">
+                  <label className="block text-xs sm:text-sm font-semibold mb-3 sm:mb-4 uppercase tracking-wider">Talla:</label>
                   <div className="flex flex-wrap gap-2">
                     {SIZES.map((size) => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`px-6 py-3 border-2 border-black text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
+                        className={`px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 border-2 border-black text-xs sm:text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
                           selectedSize === size
                             ? 'bg-black text-white'
                             : 'bg-white text-black hover:bg-black hover:text-white'
@@ -356,19 +356,19 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Selector de cantidad */}
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold mb-4 uppercase tracking-wider">Cantidad:</label>
+                <div className="mb-6 sm:mb-8">
+                  <label className="block text-xs sm:text-sm font-semibold mb-3 sm:mb-4 uppercase tracking-wider">Cantidad:</label>
                   <div className="flex items-center border-2 border-black w-fit">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-6 py-3 hover:bg-black hover:text-white transition-all duration-300 font-medium"
+                      className="px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 hover:bg-black hover:text-white transition-all duration-300 font-medium text-sm sm:text-base"
                     >
                       −
                     </button>
-                    <span className="px-8 py-3 font-bold border-x-2 border-black">{quantity}</span>
+                    <span className="px-6 sm:px-7 md:px-8 py-2 sm:py-2.5 md:py-3 font-bold border-x-2 border-black text-sm sm:text-base">{quantity}</span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="px-6 py-3 hover:bg-black hover:text-white transition-all duration-300 font-medium"
+                      className="px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 hover:bg-black hover:text-white transition-all duration-300 font-medium text-sm sm:text-base"
                     >
                       +
                     </button>
@@ -379,7 +379,7 @@ export default function ProductDetail() {
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === 0 || !selectedSize}
-                  className={`w-full py-4 text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
+                  className={`w-full py-3 sm:py-4 text-xs sm:text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
                     product.stock === 0 || !selectedSize
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed border-2 border-gray-300'
                       : 'btn-primary'
@@ -389,7 +389,7 @@ export default function ProductDetail() {
                 </button>
 
                 {product.stock !== undefined && product.stock > 0 && (
-                  <p className="text-xs text-gray-600 mt-4 uppercase tracking-wide">
+                  <p className="text-xs text-gray-600 mt-3 sm:mt-4 uppercase tracking-wide">
                     Stock disponible: {product.stock} unidades
                   </p>
                 )}
