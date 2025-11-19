@@ -19,75 +19,8 @@ export default function Page() {
           signUpUrl="/sign-up"
           afterSignInUrl="/"
           fallbackRedirectUrl="/"
-          localization={{
-            locale: "es-ES",
-            labels: {
-              signIn: {
-                title: "Iniciar sesión",
-                subtitle: "¡Bienvenido de nuevo! Por favor inicia sesión para continuar",
-                emailAddress: {
-                  label: "Correo electrónico",
-                  placeholder: "Ingresa tu correo electrónico",
-                },
-                password: {
-                  label: "Contraseña",
-                  placeholder: "Ingresa tu contraseña",
-                },
-                formButtonPrimary: "Iniciar sesión",
-                socialButtonsBlockButton: "Continuar con {{provider|titleize}}",
-                dividerText: "o",
-                formFieldAction__emailAddress: "Usar correo electrónico",
-                formFieldAction__emailCode: "Usar código de verificación",
-                formFieldAction__emailLink: "Usar enlace mágico",
-                formFieldAction__phoneNumber: "Usar número de teléfono",
-                formFieldAction__username: "Usar nombre de usuario",
-                formFieldAction__password: "Usar contraseña",
-                forgotPassword: "¿Olvidaste tu contraseña?",
-                notHaveAccount: "¿No tienes una cuenta?",
-                signUp: {
-                  actionLink: "Regístrate",
-                  actionText: "¿No tienes una cuenta?",
-                },
-              },
-              formFieldLabel__emailAddress: "Correo electrónico",
-              formFieldLabel__emailCode: "Código de verificación",
-              formFieldLabel__password: "Contraseña",
-              formFieldLabel__username: "Nombre de usuario",
-              formFieldLabel__phoneNumber: "Número de teléfono",
-              formFieldInputPlaceholder__emailAddress: "Ingresa tu correo electrónico",
-              formFieldInputPlaceholder__password: "Ingresa tu contraseña",
-              formFieldError__matchingPasswords: "Las contraseñas no coinciden",
-              formFieldHintText__optional: "Opcional",
-              formButtonPrimary__continue: "Continuar",
-              formButtonPrimary__finish: "Finalizar",
-              formButtonPrimary__save: "Guardar",
-              formButtonReset: "Limpiar",
-              formFieldAction__forgotPassword: "¿Olvidaste tu contraseña?",
-              formFieldAction__signIn: "Iniciar sesión",
-              formFieldAction__signUp: "Registrarse",
-              socialButtonsBlockButton__google: "Continuar con Google",
-              socialButtonsBlockButton__github: "Continuar con GitHub",
-              socialButtonsBlockButton__facebook: "Continuar con Facebook",
-              footerActionLink__signIn: "Iniciar sesión",
-              footerActionLink__signUp: "Registrarse",
-              footerActionLink__forgotPassword: "¿Olvidaste tu contraseña?",
-              footerActionText__signIn: "¿Ya tienes una cuenta?",
-              footerActionText__signUp: "¿No tienes una cuenta?",
-              footerActionText__forgotPassword: "¿Olvidaste tu contraseña?",
-              footerPagesLink__help: "Ayuda",
-              footerPagesLink__privacy: "Privacidad",
-              footerPagesLink__terms: "Términos",
-              identityPreviewEditButton: "Editar",
-              identityPreviewText: "Continuar como",
-              formResendCodeLink: "Reenviar código",
-              formFieldError__matchingPasswords: "Las contraseñas no coinciden",
-              formFieldError__minLength: "Debe tener al menos {{count}} caracteres",
-              formFieldError__maxLength: "Debe tener menos de {{count}} caracteres",
-              formFieldError__pattern: "Formato inválido",
-              formFieldError__required: "Este campo es obligatorio",
-            },
-          }}
           appearance={{
+            locale: "es-ES",
             elements: {
               rootBox: "mx-auto",
               card: "bg-black border-2 border-white shadow-none",
@@ -110,6 +43,10 @@ export default function Page() {
               otpCodeFieldInput: "bg-black text-white border-2 border-white focus:border-white focus:ring-0",
               dividerLine: "bg-white",
               dividerText: "text-white",
+            },
+            variables: {
+              colorText: "#ffffff",
+              colorTextSecondary: "#9ca3af",
             },
           }}
         />

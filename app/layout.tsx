@@ -9,9 +9,6 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
-      localization={{
-        locale: "es-ES",
-      }}
       appearance={{
         layout: {
           unsafe_disableDevelopmentModeWarnings: true,
