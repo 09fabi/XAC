@@ -87,22 +87,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      // Usar NEXT_PUBLIC_BASE_URL si está disponible, sino usar window.location.origin
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                     (typeof window !== 'undefined' ? window.location.origin : '')
+      // En el cliente, siempre usar window.location.origin para obtener la URL actual
+      // Esto asegura que funcione tanto en localhost como en producción
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : (process.env.NEXT_PUBLIC_BASE_URL || '')
       
       const redirectUrl = `${baseUrl}/auth/callback`
       
-      console.log('Iniciando sesión con Google, redirectTo:', redirectUrl)
+      console.log('🔐 Iniciando sesión con Google')
+      console.log('📍 URL actual:', baseUrl)
+      console.log('🔄 RedirectTo:', redirectUrl)
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error en signInWithOAuth:', error)
+        throw error
+      }
+      
+      console.log('✅ Redirección iniciada correctamente')
     } catch (error) {
       console.error('Error signing in with Google:', error)
       throw error

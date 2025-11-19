@@ -16,20 +16,26 @@ export default function AuthCallback() {
         // Manejar el callback de OAuth desde el hash de la URL
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
-        // Si no hay sesión, intentar obtenerla del hash
-        if (!session) {
+        // Si no hay sesión, intentar obtenerla del hash (esto puede pasar si Supabase redirige directamente)
+        if (!session && typeof window !== 'undefined') {
           const hashParams = new URLSearchParams(window.location.hash.substring(1))
           const accessToken = hashParams.get('access_token')
           const refreshToken = hashParams.get('refresh_token')
           
           if (accessToken && refreshToken) {
+            console.log('📥 Tokens encontrados en hash, estableciendo sesión...')
             const { data, error } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             })
             
-            if (error) throw error
+            if (error) {
+              console.error('❌ Error estableciendo sesión:', error)
+              throw error
+            }
+            
             if (data.session) {
+              console.log('✅ Sesión establecida correctamente')
               // Continuar con el flujo usando data.session
               await processUserSession(data.session)
               return
