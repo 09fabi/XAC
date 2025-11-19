@@ -89,22 +89,36 @@ export default function AuthCallback() {
         
         if (!mounted || redirecting) return
 
-        // Verificar si el email está verificado
-        const isVerified = await checkEmailVerification(session.user.id)
+        // Verificar si el email está verificado (con timeout)
+        try {
+          const isVerified = await Promise.race([
+            checkEmailVerification(session.user.id),
+            new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000))
+          ])
 
-        if (!isVerified) {
-          // Usuario no verificado - enviar código y redirigir a verificación
-          console.log('AuthCallback: Usuario no verificado, enviando código...')
-          const codeSent = await sendVerificationCode(session.user.id, session.user.email || '')
-          
-          if (codeSent) {
+          if (!isVerified) {
+            // Usuario no verificado - enviar código y redirigir a verificación
+            console.log('AuthCallback: Usuario no verificado, enviando código...')
+            const token = session.access_token
+
+            // Enviar código en segundo plano, no esperar
+            sendVerificationCode(session.user.id, session.user.email || '').catch(err => 
+              console.error('Error enviando código:', err)
+            )
+            
             router.push('/auth/verify-code')
-          } else {
-            showError('Error al enviar código de verificación. Por favor, intenta de nuevo.')
-            setTimeout(() => {
-              if (mounted) router.push('/auth/login')
-            }, 3000)
+            return
           }
+        } catch (verifyError) {
+          // Si falla la verificación, asumir que no está verificado
+          console.warn('AuthCallback: Error verificando email, asumiendo no verificado:', verifyError)
+          const token = session.access_token
+
+          sendVerificationCode(session.user.id, session.user.email || '').catch(err => 
+            console.error('Error enviando código:', err)
+          )
+          
+          router.push('/auth/verify-code')
           return
         }
 
@@ -129,6 +143,9 @@ export default function AuthCallback() {
       try {
         if (!mounted || redirecting) return
 
+        // Esperar un momento para que Supabase procese la URL
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (!mounted || redirecting) return
@@ -148,25 +165,62 @@ export default function AuthCallback() {
           clearTimeout(timeoutId)
           setLoading(false)
           
-          await refreshSession()
+          // No esperar refreshSession, continuar inmediatamente
+          refreshSession().catch(err => console.error('Error refreshing session:', err))
           
           if (!mounted || redirecting) return
 
-          // Verificar si el email está verificado
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('email_verified')
-            .eq('id', session.user.id)
-            .single()
+          // Verificar si el email está verificado (con timeout)
+          try {
+            const profilePromise = supabase
+              .from('user_profiles')
+              .select('email_verified')
+              .eq('id', session.user.id)
+              .single()
 
-          if (!profile || !profile.email_verified) {
-            // Usuario no verificado - enviar código y redirigir a verificación
-            console.log('AuthCallback: Usuario no verificado, enviando código...')
-            // Obtener token de sesión
-            const { data: { session: currentSession } } = await supabase.auth.getSession()
-            const token = currentSession?.access_token
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 3000)
+            )
 
-            const response = await fetch('/api/auth/send-verification-code', {
+            const { data: profile } = await Promise.race([profilePromise, timeoutPromise]) as any
+
+            if (!profile || !profile.email_verified) {
+              // Usuario no verificado - enviar código y redirigir a verificación
+              console.log('AuthCallback: Usuario no verificado, enviando código...')
+              const token = session.access_token
+
+              // Enviar código en segundo plano, no esperar respuesta
+              fetch('/api/auth/send-verification-code', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(token && { Authorization: `Bearer ${token}` }),
+                },
+                body: JSON.stringify({
+                  email: session.user.email,
+                  userId: session.user.id,
+                }),
+              }).catch(err => console.error('Error enviando código:', err))
+
+              // Redirigir inmediatamente sin esperar
+              router.push('/auth/verify-code')
+              return
+            }
+
+            // Usuario verificado - redirigir normalmente
+            const userName = session.user.user_metadata?.name || 
+                           session.user.user_metadata?.full_name || 
+                           session.user.email?.split('@')[0] || 
+                           'Usuario'
+            
+            redirectToHome(userName)
+            return
+          } catch (profileError) {
+            // Si falla la verificación del perfil, asumir que no está verificado
+            console.warn('AuthCallback: Error verificando perfil, asumiendo no verificado:', profileError)
+            const token = session.access_token
+
+            fetch('/api/auth/send-verification-code', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -176,27 +230,11 @@ export default function AuthCallback() {
                 email: session.user.email,
                 userId: session.user.id,
               }),
-            })
+            }).catch(err => console.error('Error enviando código:', err))
 
-            if (response.ok) {
-              router.push('/auth/verify-code')
-            } else {
-              showError('Error al enviar código de verificación')
-              setTimeout(() => {
-                if (mounted) router.push('/auth/login')
-              }, 3000)
-            }
+            router.push('/auth/verify-code')
             return
           }
-
-          // Usuario verificado - redirigir normalmente
-          const userName = session.user.user_metadata?.name || 
-                         session.user.user_metadata?.full_name || 
-                         session.user.email?.split('@')[0] || 
-                         'Usuario'
-          
-          redirectToHome(userName)
-          return
         }
 
         // Si no hay sesión, verificar si hay tokens en la URL
@@ -217,7 +255,6 @@ export default function AuthCallback() {
         }
 
         // Si no hay sesión ni error, esperar un poco más (Supabase puede estar procesando)
-        // Pero con un timeout máximo
         console.log('AuthCallback: Esperando que Supabase procese la sesión...')
       } catch (err: any) {
         console.error('AuthCallback: Error en checkSession:', err)
@@ -247,20 +284,45 @@ export default function AuthCallback() {
           refreshSession().then(async () => {
             if (!mounted || redirecting) return
 
-            // Verificar si el email está verificado
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('email_verified')
-              .eq('id', session.user.id)
-              .single()
+            // Verificar si el email está verificado (con manejo de errores)
+            try {
+              const profilePromise = supabase
+                .from('user_profiles')
+                .select('email_verified')
+                .eq('id', session.user.id)
+                .single()
 
-            if (!profile || !profile.email_verified) {
-              // Usuario no verificado - enviar código
-              // Obtener token de sesión
-              const { data: { session: currentSession } } = await supabase.auth.getSession()
-              const token = currentSession?.access_token
+              const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 2000)
+              )
 
-              const response = await fetch('/api/auth/send-verification-code', {
+              const { data: profile } = await Promise.race([profilePromise, timeoutPromise]) as any
+
+              if (!profile || !profile.email_verified) {
+                // Usuario no verificado - enviar código
+                const token = session.access_token
+
+                fetch('/api/auth/send-verification-code', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                  },
+                  body: JSON.stringify({
+                    email: session.user.email,
+                    userId: session.user.id,
+                  }),
+                }).catch(err => console.error('Error enviando código:', err))
+
+                router.push('/auth/verify-code')
+                return
+              }
+            } catch (profileError) {
+              // Si falla, asumir no verificado y redirigir
+              console.warn('AuthCallback: Error verificando perfil en timeout, asumiendo no verificado')
+              const token = session.access_token
+
+              fetch('/api/auth/send-verification-code', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -270,16 +332,9 @@ export default function AuthCallback() {
                   email: session.user.email,
                   userId: session.user.id,
                 }),
-              })
+              }).catch(err => console.error('Error enviando código:', err))
 
-              if (response.ok) {
-                router.push('/auth/verify-code')
-              } else {
-                showError('Error al enviar código de verificación')
-                setTimeout(() => {
-                  if (mounted) router.push('/auth/login')
-                }, 3000)
-              }
+              router.push('/auth/verify-code')
               return
             }
 
