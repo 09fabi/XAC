@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SSOCallback() {
+function SSOCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -83,6 +83,23 @@ export default function SSOCallback() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SSOCallback() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-black text-white">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-lg">Cargando...</p>
+          </div>
+        </div>
+      }
+    >
+      <SSOCallbackContent />
+    </Suspense>
   );
 }
 
