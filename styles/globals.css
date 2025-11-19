@@ -576,3 +576,37 @@ button[class*="error"]:hover {
   letter-spacing: 0.05em !important;
 }
 
+/* Ocultar mensajes de error específicos de Clerk que no queremos mostrar */
+.cl-identityPreview,
+.cl-identityPreviewText,
+[class*="identityPreview"],
+div[class*="external account"],
+div[class*="not found"] {
+  display: none !important;
+}
+
+/* Ocultar completamente el mensaje "THE EXTERNAL ACCOUNT WAS NOT FOUND" */
+.cl-cardBox [class*="external"],
+.cl-cardBox [class*="not found"],
+.cl-cardBox [class*="account"],
+[class*="cl-cardBox"] [class*="external"],
+[class*="cl-cardBox"] [class*="not found"],
+[class*="cl-cardBox"] [class*="account"],
+div:has-text("external account was not found"),
+div:has-text("THE EXTERNAL ACCOUNT WAS NOT FOUND"),
+[class*="cl-"]:has-text("external account"),
+[class*="cl-"]:has-text("not found") {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ocultar cualquier div que contenga el texto de error */
+.cl-cardBox > div:has(> div:contains("external account")),
+.cl-cardBox > div:has(> div:contains("not found")) {
+  display: none !important;
+}
+
