@@ -15,207 +15,294 @@ export default function AuthCallback() {
 
   useEffect(() => {
     let mounted = true
+    let redirecting = false
     let timeoutId: NodeJS.Timeout
 
-    const handleAuthCallback = async () => {
+    const redirectToHome = (userName: string) => {
+      if (redirecting || !mounted) return
+      redirecting = true
+      
+      showSuccess(`¡Bienvenido a XAC, ${userName}!`)
+      const redirectTo = router.query.redirect as string || '/'
+      router.push(redirectTo)
+    }
+
+    // Función para verificar si el email está verificado
+    const checkEmailVerification = async (userId: string): Promise<boolean> => {
       try {
-        if (!mounted) return
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('email_verified')
+          .eq('id', userId)
+          .single()
 
-        console.log('AuthCallback: Iniciando procesamiento...')
-        console.log('URL completa:', window.location.href)
-        console.log('Hash:', window.location.hash)
-        console.log('Query params:', window.location.search)
-
-        // Esperar un momento para que Supabase procese la redirección
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        // Verificar primero si ya hay una sesión activa (Supabase puede haberla establecido automáticamente)
-        const { data: { session: existingSession }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (!mounted) return
-
-        if (existingSession && !sessionError) {
-          console.log('AuthCallback: Sesión existente encontrada')
-          await refreshSession()
-          
-          if (!mounted) return
-          
-          const userName = existingSession.user.user_metadata?.name || 
-                         existingSession.user.user_metadata?.full_name || 
-                         existingSession.user.email?.split('@')[0] || 
-                         'Usuario'
-          
-          showSuccess(`¡Bienvenido a XAC, ${userName}!`)
-          const redirectTo = router.query.redirect as string || '/'
-          router.push(redirectTo)
-          return
+        if (error || !profile) {
+          return false
         }
 
-        // Obtener el hash de la URL (#access_token=...)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
-        const accessToken = hashParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token')
-        const errorParam = hashParams.get('error')
-        const errorDescription = hashParams.get('error_description')
-
-        console.log('AuthCallback: Tokens del hash:', { 
-          hasAccessToken: !!accessToken, 
-          hasRefreshToken: !!refreshToken,
-          error: errorParam 
-        })
-
-        // Si hay un error en la URL
-        if (errorParam) {
-          const errorMessage = errorDescription || errorParam
-          console.error('AuthCallback: Error en URL:', errorMessage)
-          setError(errorMessage)
-          showError(`Error de autenticación: ${errorMessage}`)
-          setLoading(false)
-          
-          setTimeout(() => {
-            router.push('/auth/login')
-          }, 3000)
-          return
-        }
-
-        // Si hay tokens en el hash, establecer la sesión
-        if (accessToken && refreshToken) {
-          console.log('AuthCallback: Estableciendo sesión con tokens del hash')
-          const { data, error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          })
-
-          if (sessionError) {
-            console.error('AuthCallback: Error al establecer sesión:', sessionError)
-            throw sessionError
-          }
-
-          if (data.user) {
-            console.log('AuthCallback: Sesión establecida correctamente')
-            await refreshSession()
-            
-            const userName = data.user.user_metadata?.name || 
-                           data.user.user_metadata?.full_name || 
-                           data.user.email?.split('@')[0] || 
-                           'Usuario'
-
-            showSuccess(`¡Bienvenido a XAC, ${userName}!`)
-            
-            const redirectTo = router.query.redirect as string || '/'
-            router.push(redirectTo)
-            return
-          }
-        }
-
-        // Si no hay tokens en el hash, verificar query parameters (algunos proveedores OAuth usan query)
-        const queryParams = new URLSearchParams(window.location.search)
-        const queryAccessToken = queryParams.get('access_token')
-        const queryRefreshToken = queryParams.get('refresh_token')
-
-        if (queryAccessToken && queryRefreshToken) {
-          console.log('AuthCallback: Tokens encontrados en query params')
-          const { data, error: sessionError } = await supabase.auth.setSession({
-            access_token: queryAccessToken,
-            refresh_token: queryRefreshToken,
-          })
-
-          if (sessionError) {
-            throw sessionError
-          }
-
-          if (data.user) {
-            await refreshSession()
-            const userName = data.user.user_metadata?.name || 
-                           data.user.user_metadata?.full_name || 
-                           data.user.email?.split('@')[0] || 
-                           'Usuario'
-
-            showSuccess(`¡Bienvenido a XAC, ${userName}!`)
-            const redirectTo = router.query.redirect as string || '/'
-            router.push(redirectTo)
-            return
-          }
-        }
-
-        // Si llegamos aquí, no hay tokens ni sesión
-        console.warn('AuthCallback: No se encontraron tokens ni sesión')
-        
-        // Intentar una última vez después de esperar
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        const { data: { session: finalSession } } = await supabase.auth.getSession()
-        
-        if (!mounted) return
-
-        if (finalSession) {
-          console.log('AuthCallback: Sesión encontrada en segundo intento')
-          await refreshSession()
-          
-          if (!mounted) return
-          
-          const userName = finalSession.user.user_metadata?.name || 
-                         finalSession.user.user_metadata?.full_name || 
-                         finalSession.user.email?.split('@')[0] || 
-                         'Usuario'
-          
-          showSuccess(`¡Bienvenido a XAC, ${userName}!`)
-          const redirectTo = router.query.redirect as string || '/'
-          router.push(redirectTo)
-          return
-        }
-
-        throw new Error('No se pudo obtener la sesión. Por favor, intenta de nuevo.')
-      } catch (err: any) {
-        if (!mounted) return
-        
-        console.error('AuthCallback: Error completo:', err)
-        const errorMessage = err.message || 'Error al autenticarse'
-        setError(errorMessage)
-        showError(`Error: ${errorMessage}`)
-        
-        timeoutId = setTimeout(() => {
-          if (mounted) {
-            router.push('/auth/login')
-          }
-        }, 3000)
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+        return profile.email_verified === true
+      } catch (error) {
+        console.error('Error verificando email:', error)
+        return false
       }
     }
 
-    // Escuchar cambios en el estado de autenticación (por si Supabase establece la sesión automáticamente)
+    // Función para enviar código de verificación
+    const sendVerificationCode = async (userId: string, email: string) => {
+      try {
+        // Obtener token de sesión
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+
+        const response = await fetch('/api/auth/send-verification-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          body: JSON.stringify({
+            email: email,
+            userId: userId,
+          }),
+        })
+
+        const data = await response.json()
+        return response.ok
+      } catch (error) {
+        console.error('Error enviando código:', error)
+        return false
+      }
+    }
+
+    // Escuchar cambios en el estado de autenticación (PRIMERO - esto es lo más importante)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return
+      if (!mounted || redirecting) return
 
       console.log('AuthCallback: Auth state changed:', event, session?.user?.email)
 
       if (event === 'SIGNED_IN' && session) {
         console.log('AuthCallback: Usuario autenticado vía onAuthStateChange')
         clearTimeout(timeoutId)
+        setLoading(false)
+        
         await refreshSession()
         
-        if (!mounted) return
+        if (!mounted || redirecting) return
 
+        // Verificar si el email está verificado
+        const isVerified = await checkEmailVerification(session.user.id)
+
+        if (!isVerified) {
+          // Usuario no verificado - enviar código y redirigir a verificación
+          console.log('AuthCallback: Usuario no verificado, enviando código...')
+          const codeSent = await sendVerificationCode(session.user.id, session.user.email || '')
+          
+          if (codeSent) {
+            router.push('/auth/verify-code')
+          } else {
+            showError('Error al enviar código de verificación. Por favor, intenta de nuevo.')
+            setTimeout(() => {
+              if (mounted) router.push('/auth/login')
+            }, 3000)
+          }
+          return
+        }
+
+        // Usuario verificado - redirigir normalmente
         const userName = session.user.user_metadata?.name || 
                        session.user.user_metadata?.full_name || 
                        session.user.email?.split('@')[0] || 
                        'Usuario'
         
-        showSuccess(`¡Bienvenido a XAC, ${userName}!`)
-        const redirectTo = router.query.redirect as string || '/'
-        router.push(redirectTo)
+        redirectToHome(userName)
+      } else if (event === 'SIGNED_OUT') {
+        console.log('AuthCallback: Usuario cerró sesión')
+        setLoading(false)
+        if (mounted && !redirecting) {
+          router.push('/auth/login')
+        }
       }
     })
 
-    // Iniciar el procesamiento después de un breve delay
+    // Verificar sesión existente inmediatamente (sin esperar)
+    const checkSession = async () => {
+      try {
+        if (!mounted || redirecting) return
+
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (!mounted || redirecting) return
+
+        if (error) {
+          console.error('AuthCallback: Error al obtener sesión:', error)
+          setError('Error al verificar la sesión')
+          setLoading(false)
+          setTimeout(() => {
+            if (mounted) router.push('/auth/login')
+          }, 2000)
+          return
+        }
+
+        if (session) {
+          console.log('AuthCallback: Sesión encontrada inmediatamente')
+          clearTimeout(timeoutId)
+          setLoading(false)
+          
+          await refreshSession()
+          
+          if (!mounted || redirecting) return
+
+          // Verificar si el email está verificado
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('email_verified')
+            .eq('id', session.user.id)
+            .single()
+
+          if (!profile || !profile.email_verified) {
+            // Usuario no verificado - enviar código y redirigir a verificación
+            console.log('AuthCallback: Usuario no verificado, enviando código...')
+            // Obtener token de sesión
+            const { data: { session: currentSession } } = await supabase.auth.getSession()
+            const token = currentSession?.access_token
+
+            const response = await fetch('/api/auth/send-verification-code', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+              },
+              body: JSON.stringify({
+                email: session.user.email,
+                userId: session.user.id,
+              }),
+            })
+
+            if (response.ok) {
+              router.push('/auth/verify-code')
+            } else {
+              showError('Error al enviar código de verificación')
+              setTimeout(() => {
+                if (mounted) router.push('/auth/login')
+              }, 3000)
+            }
+            return
+          }
+
+          // Usuario verificado - redirigir normalmente
+          const userName = session.user.user_metadata?.name || 
+                         session.user.user_metadata?.full_name || 
+                         session.user.email?.split('@')[0] || 
+                         'Usuario'
+          
+          redirectToHome(userName)
+          return
+        }
+
+        // Si no hay sesión, verificar si hay tokens en la URL
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const errorParam = hashParams.get('error')
+        const errorDescription = hashParams.get('error_description')
+
+        if (errorParam) {
+          const errorMessage = errorDescription || errorParam
+          console.error('AuthCallback: Error en URL:', errorMessage)
+          setError(errorMessage)
+          showError(`Error de autenticación: ${errorMessage}`)
+          setLoading(false)
+          setTimeout(() => {
+            if (mounted) router.push('/auth/login')
+          }, 2000)
+          return
+        }
+
+        // Si no hay sesión ni error, esperar un poco más (Supabase puede estar procesando)
+        // Pero con un timeout máximo
+        console.log('AuthCallback: Esperando que Supabase procese la sesión...')
+      } catch (err: any) {
+        console.error('AuthCallback: Error en checkSession:', err)
+        if (mounted && !redirecting) {
+          setError('Error al procesar la autenticación')
+          setLoading(false)
+          setTimeout(() => {
+            if (mounted) router.push('/auth/login')
+          }, 2000)
+        }
+      }
+    }
+
+    // Verificar inmediatamente
+    checkSession()
+
+    // Timeout de seguridad: si después de 5 segundos no hay sesión, redirigir
     timeoutId = setTimeout(() => {
-      handleAuthCallback()
-    }, 500)
+      if (!mounted || redirecting) return
+      
+      console.warn('AuthCallback: Timeout - verificando sesión una última vez')
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!mounted || redirecting) return
+        
+        if (session) {
+          setLoading(false)
+          refreshSession().then(async () => {
+            if (!mounted || redirecting) return
+
+            // Verificar si el email está verificado
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('email_verified')
+              .eq('id', session.user.id)
+              .single()
+
+            if (!profile || !profile.email_verified) {
+              // Usuario no verificado - enviar código
+              // Obtener token de sesión
+              const { data: { session: currentSession } } = await supabase.auth.getSession()
+              const token = currentSession?.access_token
+
+              const response = await fetch('/api/auth/send-verification-code', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(token && { Authorization: `Bearer ${token}` }),
+                },
+                body: JSON.stringify({
+                  email: session.user.email,
+                  userId: session.user.id,
+                }),
+              })
+
+              if (response.ok) {
+                router.push('/auth/verify-code')
+              } else {
+                showError('Error al enviar código de verificación')
+                setTimeout(() => {
+                  if (mounted) router.push('/auth/login')
+                }, 3000)
+              }
+              return
+            }
+
+            // Usuario verificado
+            const userName = session.user.user_metadata?.name || 
+                           session.user.user_metadata?.full_name || 
+                           session.user.email?.split('@')[0] || 
+                           'Usuario'
+            redirectToHome(userName)
+          })
+        } else {
+          setError('La autenticación está tomando demasiado tiempo. Por favor, intenta de nuevo.')
+          setLoading(false)
+          setTimeout(() => {
+            if (mounted) router.push('/auth/login')
+          }, 2000)
+        }
+      })
+    }, 5000) // 5 segundos máximo
 
     return () => {
       mounted = false
+      redirecting = true
       clearTimeout(timeoutId)
       subscription.unsubscribe()
     }

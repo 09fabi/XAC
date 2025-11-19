@@ -65,11 +65,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Función para crear o actualizar el perfil del usuario
   const createOrUpdateProfile = async (user: User, name?: string) => {
     try {
+      // Verificar si el perfil ya existe
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
       const profileData = {
         id: user.id,
         email: user.email || '',
         name: name || user.user_metadata?.name || user.user_metadata?.full_name || null,
         updated_at: new Date().toISOString(),
+        // Si es un perfil nuevo, email_verified será false por defecto
+        // Si ya existe, mantener el valor actual
+        email_verified: existingProfile?.email_verified ?? false,
       }
 
       const { error } = await supabase

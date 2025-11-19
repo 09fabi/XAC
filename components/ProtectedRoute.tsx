@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, redirectTo = '/auth/login' }: ProtectedRouteProps) {
   const router = useRouter()
-  const { user, loading } = useAuth()
+  const { user, profile, loading } = useAuth()
   const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
@@ -30,10 +30,16 @@ export default function ProtectedRoute({ children, redirectTo = '/auth/login' }:
       router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`)
     }
 
+    // Si el usuario está autenticado pero no tiene email verificado, redirigir a verificación
+    if (!loading && user && profile && !profile.email_verified && !redirecting) {
+      setRedirecting(true)
+      router.push('/auth/verify-code')
+    }
+
     return () => {
       clearTimeout(timeoutId)
     }
-  }, [user, loading, router, redirectTo, redirecting])
+  }, [user, profile, loading, router, redirectTo, redirecting])
 
   // Mostrar loading mientras se verifica la autenticación
   if (loading || redirecting) {
@@ -56,7 +62,16 @@ export default function ProtectedRoute({ children, redirectTo = '/auth/login' }:
     )
   }
 
-  // Si hay usuario, mostrar el contenido
+  // Si el usuario no tiene email verificado, redirigir a verificación
+  if (profile && !profile.email_verified) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-lg">Redirigiendo a verificación...</div>
+      </div>
+    )
+  }
+
+  // Si hay usuario y está verificado, mostrar el contenido
   return <>{children}</>
 }
 
