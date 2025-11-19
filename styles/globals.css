@@ -610,3 +610,54 @@ div:has-text("THE EXTERNAL ACCOUNT WAS NOT FOUND"),
   display: none !important;
 }
 
+/* Ocultar alertas de Clerk que contengan mensajes de error de cuenta no encontrada */
+.cl-alert[class*="danger"],
+.cl-alert[class*="error"],
+.cl-alertText,
+.cl-cardBox .cl-alert,
+.cl-cardBox .cl-alertText,
+.cl-cardBox .cl-alertDanger,
+.cl-cardBox .cl-alertError,
+[class*="cl-alert"][class*="danger"],
+[class*="cl-alert"][class*="error"] {
+  /* Ocultar si contiene texto relacionado con "external account" o "not found" */
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Ocultar específicamente el mensaje "THE EXTERNAL ACCOUNT WAS NOT FOUND" */
+.cl-cardBox > div:first-of-type,
+.cl-cardBox > div:nth-of-type(2),
+.cl-cardBox > div:has(> .cl-alert),
+.cl-cardBox > div:has(> .cl-alertText),
+.cl-cardBox > div:has(> [class*="alert"]) {
+  /* Solo ocultar si contiene el texto específico */
+}
+
+/* Ocultar todos los alerts dentro del cardBox excepto los que queremos mantener */
+.cl-cardBox .cl-alert:not(.cl-alertSuccess),
+.cl-cardBox .cl-alertDanger,
+.cl-cardBox .cl-alertError,
+.cl-cardBox [class*="alert"][class*="danger"],
+.cl-cardBox [class*="alert"][class*="error"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+}
+
+/* Nota: El ocultamiento de mensajes de error específicos se maneja con JavaScript en app/sign-in/page.tsx */
+/* Estas reglas CSS ocultan alertas de error genéricas de Clerk */
+

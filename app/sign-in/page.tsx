@@ -20,6 +20,87 @@ export default function Page() {
     clearAllAlerts();
   }, [clearAllAlerts]);
 
+  // Separar la lógica de ocultar mensajes en un useEffect diferente que se ejecute después
+  useEffect(() => {
+    // Función optimizada para ocultar mensajes de error de Clerk
+    const hideClerkErrorMessages = () => {
+      // Solo buscar en alerts específicos, no en todos los elementos
+      const alerts = document.querySelectorAll('.cl-alert, .cl-alertText, .cl-alertDanger, .cl-alertError, [class*="cl-alert"]');
+      
+      alerts.forEach((alert) => {
+        const text = alert.textContent || alert.innerText || "";
+        const textLower = text.toLowerCase();
+        
+        // Si contiene el mensaje de error, ocultarlo
+        if (
+          textLower.includes("external account was not found") ||
+          textLower.includes("the external account was not found") ||
+          (textLower.includes("external account") && textLower.includes("not found"))
+        ) {
+          const element = alert as HTMLElement;
+          element.style.cssText = "display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; max-height: 0 !important; overflow: hidden !important;";
+        }
+      });
+    };
+
+    // Esperar a que Clerk cargue completamente antes de empezar
+    let observer: MutationObserver | null = null;
+    let interval: NodeJS.Timeout | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    // Función para iniciar la observación
+    const startObserving = () => {
+      const clerkContainer = document.querySelector('[class*="cl-rootBox"]');
+      if (!clerkContainer) return;
+
+      // Ejecutar una vez después de un pequeño delay
+      timeoutId = setTimeout(() => {
+        hideClerkErrorMessages();
+      }, 500);
+
+      // Observar cambios en el DOM solo dentro del contenedor de Clerk
+      observer = new MutationObserver(() => {
+        // Usar requestAnimationFrame para no bloquear el render
+        requestAnimationFrame(() => {
+          hideClerkErrorMessages();
+        });
+      });
+
+      observer.observe(clerkContainer, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+
+      // Verificar periódicamente con menos frecuencia
+      interval = setInterval(() => {
+        hideClerkErrorMessages();
+      }, 2000);
+    };
+
+    // Esperar a que Clerk cargue (verificar cada 200ms)
+    const checkClerkLoaded = setInterval(() => {
+      const clerkContainer = document.querySelector('[class*="cl-rootBox"]');
+      if (clerkContainer && clerkContainer.children.length > 0) {
+        clearInterval(checkClerkLoaded);
+        startObserving();
+      }
+    }, 200);
+
+    // Limpiar después de 5 segundos si Clerk no carga
+    const safetyTimeout = setTimeout(() => {
+      clearInterval(checkClerkLoaded);
+    }, 5000);
+
+    return () => {
+      if (observer) observer.disconnect();
+      if (interval) clearInterval(interval);
+      if (timeoutId) clearTimeout(timeoutId);
+      clearInterval(checkClerkLoaded);
+      clearTimeout(safetyTimeout);
+    };
+  }, []); // Este useEffect no depende de nada, se ejecuta una vez
+
   return (
     <div className="min-h-screen bg-black">
       {/* Navbar arriba */}
