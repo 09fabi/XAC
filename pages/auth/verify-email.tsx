@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase'
 
 export default function VerifyEmail() {
   const router = useRouter()
-  const { user, checkEmailVerification } = useAuth()
+  const { user, checkEmailVerification, loading: authLoading } = useAuth()
   const { showSuccess, showError } = useAlert()
   const [code, setCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -19,7 +19,7 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     // Si no hay usuario, redirigir al login
-    if (!user && !loading) {
+    if (!user && !authLoading) {
       console.log('⚠️ No hay usuario, redirigiendo a login')
       router.push('/auth/login')
       return
@@ -37,7 +37,7 @@ export default function VerifyEmail() {
         }
       })
     }
-  }, [user, loading, router, checkEmailVerification])
+  }, [user, authLoading, router, checkEmailVerification])
 
   useEffect(() => {
     // Countdown para reenvío de código
