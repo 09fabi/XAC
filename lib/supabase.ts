@@ -4,19 +4,25 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('⚠️ Supabase credentials not found. Auth features may not work.')
-  console.warn('Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  if (typeof window !== 'undefined') {
+    console.warn('⚠️ Supabase credentials not found. Auth features may not work.')
+    console.warn('Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  }
 }
 
 // Crear cliente incluso si las credenciales están vacías (para evitar errores)
+// En producción, usar localStorage para persistir sesiones
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
   {
     auth: {
       autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
+      persistSession: typeof window !== 'undefined',
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'supabase.auth.token',
+      flowType: 'pkce'
     }
   }
 )
