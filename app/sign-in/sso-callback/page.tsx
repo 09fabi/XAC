@@ -8,6 +8,11 @@ export default function SSOCallback() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    // Verificar que searchParams no sea null
+    if (!searchParams) {
+      return;
+    }
+
     // Cuando Clerk redirige a sso-callback sin parámetros de error,
     // generalmente significa que el usuario intentó iniciar sesión pero no existe
     // Mostrar alert inmediatamente
