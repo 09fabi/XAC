@@ -14,6 +14,7 @@ interface AlertContextType {
   showError: (message: string, duration?: number) => void
   showWarning: (message: string, duration?: number) => void
   showInfo: (message: string, duration?: number) => void
+  clearAllAlerts: () => void
 }
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined)
@@ -42,6 +43,10 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({ children }) => {
     setAlerts((prev) => prev.filter((alert) => alert.id !== id))
   }
 
+  const clearAllAlerts = () => {
+    setAlerts([])
+  }
+
   const showAlert = (type: AlertType, message: string, duration: number = 5000) => {
     const id = Math.random().toString(36).substring(2, 9)
     setAlerts((prev) => {
@@ -66,7 +71,7 @@ export const AlertProvider: React.FC<AlertProviderProps> = ({ children }) => {
   }
 
   return (
-    <AlertContext.Provider value={{ showAlert, showSuccess, showError, showWarning, showInfo }}>
+    <AlertContext.Provider value={{ showAlert, showSuccess, showError, showWarning, showInfo, clearAllAlerts }}>
       {children}
       {/* Contenedor de alerts fijo en la parte superior centrado */}
       {isMounted && (

@@ -8,85 +8,17 @@ import Footer from "@/components/Footer";
 
 export default function Page() {
   const router = useRouter();
-  const { showError } = useAlert();
+  const { clearAllAlerts } = useAlert();
 
   useEffect(() => {
-    // Limpiar cualquier flag de procesamiento al entrar a la página
+    // Limpiar cualquier flag de procesamiento al entrar a la página de sign-in
+    // Esto asegura que si el usuario vuelve a intentar, el flujo funcione correctamente
     sessionStorage.removeItem("sso_callback_processed");
     sessionStorage.removeItem("user_not_found_handled");
-    
-    let checkInterval: NodeJS.Timeout;
-    let observer: MutationObserver;
-    
-    // Función para detectar y manejar el error
-    const handleUserNotFoundError = () => {
-      // Verificar que no hayamos procesado esto ya
-      if (sessionStorage.getItem("user_not_found_handled")) {
-        return;
-      }
-
-      // Buscar el mensaje de error en el DOM
-      const allText = document.body.innerText || document.body.textContent || "";
-      const hasError = allText.toLowerCase().includes("external account was not found") ||
-                      allText.toLowerCase().includes("the external account was not found") ||
-                      (allText.toLowerCase().includes("not found") && allText.toLowerCase().includes("account"));
-
-      if (hasError) {
-        sessionStorage.setItem("user_not_found_handled", "true");
-        
-        // Limpiar intervalos y observers
-        if (checkInterval) clearInterval(checkInterval);
-        if (observer) observer.disconnect();
-        
-        // Mostrar alert y redirigir
-        showError("No tienes una cuenta registrada. Por favor, regístrate primero.", 3000);
-        
-        setTimeout(() => {
-          sessionStorage.removeItem("user_not_found_handled");
-          router.push("/redirecting");
-        }, 1500);
-      }
-    };
-
-    // Observar cambios en el DOM para detectar mensajes de error de Clerk
-    observer = new MutationObserver(() => {
-      handleUserNotFoundError();
-    });
-
-    // Observar el contenedor de Clerk cuando esté disponible
-    const startObserving = () => {
-      const clerkContainer = document.querySelector('[class*="cl-rootBox"]') || document.body;
-      observer.observe(clerkContainer, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      });
-    };
-
-    // Intentar empezar a observar inmediatamente
-    startObserving();
-
-    // También verificar periódicamente por si Clerk carga después
-    checkInterval = setInterval(() => {
-      handleUserNotFoundError();
-      // Si encontramos el contenedor de Clerk, empezar a observar
-      if (document.querySelector('[class*="cl-rootBox"]')) {
-        startObserving();
-      }
-    }, 500);
-
-    // Limpiar después de 10 segundos para evitar loops infinitos
-    const cleanupTimeout = setTimeout(() => {
-      if (checkInterval) clearInterval(checkInterval);
-      if (observer) observer.disconnect();
-    }, 10000);
-
-    return () => {
-      if (checkInterval) clearInterval(checkInterval);
-      if (observer) observer.disconnect();
-      clearTimeout(cleanupTimeout);
-    };
-  }, [router, showError]);
+    sessionStorage.removeItem("clerk_user_cancelled");
+    // Limpiar alerts previos al entrar a la página
+    clearAllAlerts();
+  }, [clearAllAlerts]);
 
   return (
     <div className="min-h-screen bg-black">

@@ -9,9 +9,15 @@ const isPublicRoute = createRouteMatcher([
   "/product(.*)",
   "/cart(.*)",
   "/recommendations(.*)",
+  "/redirecting(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Excluir rutas de API del middleware
+  if (req.nextUrl.pathname.startsWith("/api/")) {
+    return;
+  }
+
   // Si es una ruta pública, permitir acceso sin verificación
   if (isPublicRoute(req)) {
     return;
@@ -28,5 +34,8 @@ export default clerkMiddleware(async (auth, req) => {
 });
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)"],
+  matcher: [
+    // Excluir archivos estáticos, rutas de API, y archivos de Next.js
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
+  ],
 };

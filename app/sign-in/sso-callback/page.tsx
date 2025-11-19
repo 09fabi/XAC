@@ -6,7 +6,7 @@ import { useAlert } from "@/context/AlertContext";
 function SSOCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { showError } = useAlert();
+  const { showError, clearAllAlerts } = useAlert();
   const hasProcessed = useRef(false);
 
   useEffect(() => {
@@ -17,7 +17,18 @@ function SSOCallbackContent() {
 
     // Verificar que searchParams no sea null
     if (!searchParams) {
-      return;
+      // Si no hay searchParams, esperar un momento y redirigir
+      const timeout = setTimeout(() => {
+        if (!hasProcessed.current) {
+          hasProcessed.current = true;
+          clearAllAlerts();
+          showError("No tienes una cuenta registrada. Por favor, regístrate primero.", 3000);
+          setTimeout(() => {
+            router.replace("/redirecting");
+          }, 1500);
+        }
+      }, 1000);
+      return () => clearTimeout(timeout);
     }
 
     // Verificar si el usuario viene de volver atrás intencionalmente
@@ -25,15 +36,18 @@ function SSOCallbackContent() {
     
     if (isBackNavigation) {
       hasProcessed.current = true;
-      // Limpiar el flag y redirigir al inicio sin mostrar alert
       sessionStorage.removeItem("clerk_user_cancelled");
+      sessionStorage.removeItem("sso_callback_processed");
       router.replace("/");
       return;
     }
 
-    // Verificar si ya procesamos este callback
+    // Verificar si ya procesamos este callback (evitar loops)
     const callbackProcessed = sessionStorage.getItem("sso_callback_processed");
-    if (callbackProcessed) {
+    if (callbackProcessed === "true") {
+      // Si ya procesamos, redirigir inmediatamente sin procesar de nuevo
+      hasProcessed.current = true;
+      router.replace("/redirecting");
       return;
     }
 
@@ -41,68 +55,22 @@ function SSOCallbackContent() {
     sessionStorage.setItem("sso_callback_processed", "true");
     hasProcessed.current = true;
 
-    // Cuando Clerk redirige a sso-callback sin parámetros de error,
-    // generalmente significa que el usuario intentó iniciar sesión pero no existe
+    // Función para manejar usuario no encontrado
     const handleUserNotFound = () => {
-      // Mostrar alert minimalista solo una vez
+      // Limpiar cualquier alert previo antes de mostrar uno nuevo
+      clearAllAlerts();
       showError("No tienes una cuenta registrada. Por favor, regístrate primero.", 3000);
-      
-      // Redirigir a página de redirección después de mostrar el alert
       setTimeout(() => {
-        sessionStorage.removeItem("sso_callback_processed");
         router.replace("/redirecting");
       }, 1500);
     };
 
-    // Verificar si hay parámetros de error explícitos
-    const error = searchParams.get("error");
-    const errorDescription = searchParams.get("error_description");
-    
-    // Verificar mensajes de error específicos de Clerk
-    const errorDescLower = errorDescription?.toLowerCase() || "";
-    const isUserNotFound = errorDescLower.includes("not found") ||
-                          errorDescLower.includes("no encontrado") ||
-                          errorDescLower.includes("external account") ||
-                          errorDescLower.includes("was not found") ||
-                          error === "user_not_found" ||
-                          error === "external_account_not_found";
-    
-    // Si hay parámetros de error relacionados con usuario no encontrado
-    if (isUserNotFound) {
-      handleUserNotFound();
-      return;
-    }
-
-    // Si hay un error pero no es de usuario no encontrado, también redirigir
-    if (error && !searchParams.has("code") && !searchParams.has("session_id")) {
-      handleUserNotFound();
-      return;
-    }
-
-    // Si llegamos a sso-callback sin parámetros de éxito (como código de verificación),
-    // y tenemos sign_in_fallback_redirect_url pero no code/session, probablemente es error
+    // Verificar parámetros de éxito primero
     const hasSuccessParams = searchParams.has("code") || 
                             searchParams.has("session_id") || 
                             searchParams.has("__clerk_redirect_url");
-    
-    // Si no hay parámetros de éxito y tenemos redirect_url, puede ser un error
-    // En este caso, Clerk puede estar redirigiendo aquí sin parámetros de éxito
-    // lo que generalmente significa que el usuario no existe
-    if (!hasSuccessParams && searchParams.has("sign_in_fallback_redirect_url")) {
-      // Esperar un momento para ver si Clerk carga algo, si no, asumir error
-      const checkTimeout = setTimeout(() => {
-        if (!hasProcessed.current) {
-          hasProcessed.current = true;
-          handleUserNotFound();
-        }
-      }, 2000);
-      
-      return () => {
-        clearTimeout(checkTimeout);
-      };
-    }
 
-    // Si hay parámetros de éxito, intentar redirigir normalmente
+    // Si hay parámetros de éxito, redirigir normalmente
     if (hasSuccessParams) {
       const fallbackUrl = searchParams.get("sign_in_fallback_redirect_url") || 
                           searchParams.get("after_sign_in_url") || 
@@ -119,20 +87,36 @@ function SSOCallbackContent() {
       return;
     }
 
-    // Si no hay parámetros de éxito ni error explícito, pero llegamos aquí,
-    // probablemente es un error de usuario no encontrado
-    // Esperar un poco para ver si Clerk carga algo
-    const finalCheckTimeout = setTimeout(() => {
-      if (!hasProcessed.current) {
-        hasProcessed.current = true;
+    // Verificar si hay parámetros de error explícitos
+    const error = searchParams.get("error");
+    const errorDescription = searchParams.get("error_description");
+    
+    if (error || errorDescription) {
+      const errorDescLower = errorDescription?.toLowerCase() || "";
+      const isUserNotFound = errorDescLower.includes("not found") ||
+                            errorDescLower.includes("no encontrado") ||
+                            errorDescLower.includes("external account") ||
+                            errorDescLower.includes("was not found") ||
+                            error === "user_not_found" ||
+                            error === "external_account_not_found";
+      
+      if (isUserNotFound) {
         handleUserNotFound();
+        return;
       }
-    }, 2000);
+    }
+
+    // Si no hay parámetros de éxito ni error explícito, asumir usuario no encontrado
+    // Esto es común cuando Clerk redirige aquí sin parámetros después de un intento fallido
+    // Usar un timeout corto para asegurar que siempre redirija
+    const timeout = setTimeout(() => {
+      handleUserNotFound();
+    }, 500);
 
     return () => {
-      clearTimeout(finalCheckTimeout);
+      clearTimeout(timeout);
     };
-  }, [searchParams, router, showError]);
+  }, [searchParams, router, showError, clearAllAlerts]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
