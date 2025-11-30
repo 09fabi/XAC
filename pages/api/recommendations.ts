@@ -136,11 +136,11 @@ export default async function handler(
             !cartProductIds.includes(p.id)
         )
       } else {
-        // Por defecto, productos destacados
-        recommendations = allProducts.slice(0, 4)
+        // Por defecto, productos destacados o primeros productos
+        recommendations = allProducts.slice(0, 8)
       }
 
-      return res.status(200).json({ recommendations })
+      return res.status(200).json({ recommendations: recommendations.slice(0, 8) })
     }
 
     // Implementación con Supabase y lógica de recomendación
@@ -162,6 +162,7 @@ export default async function handler(
       category: p.category,
       color: p.color,
       stock: p.stock,
+      featured: p.featured || false,
     }))
 
     let recommendations: Product[] = []
@@ -184,9 +185,17 @@ export default async function handler(
           !cartProductIds.includes(p.id)
       )
     } else {
-      recommendations = allProducts.slice(0, 4)
+      // Si no hay criterios de filtrado, mostrar productos destacados o aleatorios
+      // Priorizar productos con featured=true si existe ese campo
+      const featuredProducts = allProducts.filter((p: any) => p.featured === true)
+      if (featuredProducts.length > 0) {
+        recommendations = featuredProducts.slice(0, 8)
+      } else {
+        recommendations = allProducts.slice(0, 8)
+      }
     }
 
+    // Limitar a 8 recomendaciones máximo
     return res.status(200).json({ recommendations: recommendations.slice(0, 8) })
   } catch (error) {
     console.error('API error:', error)
